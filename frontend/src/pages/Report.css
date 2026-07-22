@@ -1,0 +1,970 @@
+/* ===============================
+        MAIN LAYOUT
+================================ */
+
+
+.report-layout {
+
+    min-height:100vh;
+
+    display:flex;
+
+
+    background:
+
+    linear-gradient(
+        rgba(8,5,25,.92),
+        rgba(8,5,25,.95)
+    ),
+    url("../assets/background.png");
+
+
+    background-size:cover;
+
+    background-position:center;
+
+    color:white;
+
+}
+
+
+
+
+
+
+/* ===============================
+        SIDEBAR
+================================ */
+
+
+.sidebar {
+
+    width:270px;
+
+    min-height:100vh;
+
+    background:
+
+    rgba(255,255,255,.08);
+
+
+    backdrop-filter:blur(20px);
+
+
+    border-right:
+
+    1px solid rgba(255,255,255,.12);
+
+
+    padding:35px 25px;
+
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+
+.logo {
+
+    font-size:32px;
+
+    font-weight:800;
+
+    color:#ddd6fe;
+
+    margin-bottom:60px;
+
+}
+
+
+
+.menu {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+
+
+.menu-item {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:16px;
+
+    border-radius:16px;
+
+    color:#ddd6fe;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+
+
+.menu-item:hover,
+.menu-item.active {
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #7c3aed,
+        #c026d3
+    );
+
+
+    color:white;
+
+
+    transform:translateX(5px);
+
+}
+
+
+
+
+.logout {
+
+    margin-top:auto;
+
+    padding:16px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    border-radius:15px;
+
+    background:
+
+    rgba(255,255,255,.08);
+
+
+    color:#fca5a5;
+
+    cursor:pointer;
+
+}
+
+
+
+
+
+
+
+/* ===============================
+        REPORT CONTENT
+================================ */
+
+
+
+.report-main {
+
+
+    flex:1;
+
+
+    padding:45px;
+
+
+}
+
+
+
+
+
+
+/* ===============================
+        HEADER
+================================ */
+
+
+.report-header {
+
+
+    text-align:center;
+
+    margin-bottom:45px;
+
+
+}
+
+
+.report-header h1 {
+
+
+    font-size:46px;
+
+    color:#facc15;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.report-header p {
+
+
+    color:#ddd6fe;
+
+    font-size:20px;
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        CARDS
+================================ */
+
+
+.glass-card {
+
+
+    background:
+
+    rgba(255,255,255,.08);
+
+
+    backdrop-filter:blur(20px);
+
+
+    border:
+
+    1px solid rgba(255,255,255,.12);
+
+
+    border-radius:25px;
+
+
+    padding:35px;
+
+
+    margin-bottom:30px;
+
+
+    box-shadow:
+
+    0 20px 45px rgba(0,0,0,.35);
+
+}
+
+
+
+
+
+.glass-card h2 {
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+
+    color:#facc15;
+
+
+    font-size:27px;
+
+
+    margin-bottom:30px;
+
+
+}
+
+
+
+
+
+
+
+/* ===============================
+        GRID
+================================ */
+
+
+
+.report-grid {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    2fr 1fr;
+
+
+    gap:30px;
+
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        INFO
+================================ */
+
+
+.info-row {
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    padding:16px 0;
+
+
+    border-bottom:
+
+    1px solid rgba(255,255,255,.1);
+
+
+}
+
+
+
+.info-row span {
+
+
+    color:#c4b5fd;
+
+
+}
+
+
+.info-row strong {
+
+
+    color:white;
+
+}
+
+
+
+
+
+
+
+/* ===============================
+        SCORE
+================================ */
+
+
+
+.score-circle {
+
+
+    width:190px;
+
+
+    height:190px;
+
+
+    margin:auto;
+
+
+    border-radius:50%;
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+
+    background:
+
+    conic-gradient(
+        #c084fc 98%,
+        rgba(255,255,255,.1) 2%
+    );
+
+
+    box-shadow:
+
+    0 0 40px rgba(192,132,252,.45);
+
+
+}
+
+
+
+.score-circle h1 {
+
+
+    font-size:45px;
+
+}
+
+
+
+.score-circle p {
+
+
+    color:#facc15;
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        ANALYSIS ITEMS
+================================ */
+
+
+
+.analysis-grid {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    repeat(4,1fr);
+
+
+    gap:20px;
+
+
+}
+
+
+
+
+
+.analysis-item {
+
+
+    padding:25px;
+
+
+    border-radius:20px;
+
+
+    text-align:center;
+
+
+    background:
+
+    rgba(255,255,255,.06);
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.analysis-item:hover {
+
+
+    transform:translateY(-6px);
+
+
+    background:
+
+    rgba(192,132,252,.18);
+
+
+}
+
+
+
+.analysis-item svg {
+
+
+    color:#4ade80;
+
+}
+
+
+
+.analysis-item h3 {
+
+
+    margin-top:15px;
+
+    color:#facc15;
+
+}
+
+
+
+.analysis-item p {
+
+
+    color:#ddd6fe;
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        TAROT
+================================ */
+
+
+.tarot-grid {
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    gap:30px;
+
+
+    flex-wrap:wrap;
+
+
+}
+
+
+
+
+.tarot-card {
+
+
+    width:190px;
+
+
+    height:280px;
+
+
+    border-radius:25px;
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    gap:15px;
+
+
+    background:
+
+    linear-gradient(
+        145deg,
+        #6d28d9,
+        #db2777
+    );
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.tarot-card:hover {
+
+
+    transform:
+
+    translateY(-8px)
+    scale(1.05);
+
+
+}
+
+
+
+
+.tarot-card h3 {
+
+
+    font-size:23px;
+
+}
+
+
+
+
+.tarot-card p {
+
+
+    color:#f5d0fe;
+
+}
+
+
+
+
+
+
+
+/* ===============================
+        PREDICTION
+================================ */
+
+
+.prediction h3 {
+
+
+    color:#facc15;
+
+
+    display:flex;
+
+
+    gap:12px;
+
+
+    align-items:center;
+
+
+    margin-top:25px;
+
+
+}
+
+
+
+
+.prediction p {
+
+
+    color:#ddd6fe;
+
+
+    line-height:1.8;
+
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        FORTUNE
+================================ */
+
+
+.fortune-bar {
+
+
+    width:100%;
+
+
+    height:20px;
+
+
+    background:
+
+    rgba(255,255,255,.1);
+
+
+    border-radius:30px;
+
+
+    overflow:hidden;
+
+
+    margin:30px 0;
+
+
+}
+
+
+
+.fortune-fill {
+
+
+    width:87%;
+
+
+    height:100%;
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #7c3aed,
+        #facc15
+    );
+
+
+}
+
+
+
+.fortune h1 {
+
+
+    text-align:center;
+
+
+    color:#facc15;
+
+
+    font-size:45px;
+
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        BUTTONS
+================================ */
+
+
+
+.button-group {
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    gap:25px;
+
+
+    margin-top:40px;
+
+
+}
+
+
+
+.download-btn,
+.new-btn {
+
+
+    padding:17px 35px;
+
+
+    border:none;
+
+
+    border-radius:18px;
+
+
+    font-size:18px;
+
+
+    font-weight:700;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:12px;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+.download-btn {
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #7c3aed,
+        #db2777
+    );
+
+
+    color:white;
+
+}
+
+
+
+.new-btn {
+
+
+    background:#facc15;
+
+
+    color:black;
+
+
+}
+
+
+
+
+
+
+
+/* ===============================
+        FOOTER
+================================ */
+
+
+.report-footer {
+
+
+    text-align:center;
+
+
+    margin-top:50px;
+
+
+    color:#c4b5fd;
+
+
+}
+
+
+
+.report-footer strong {
+
+
+    color:#facc15;
+
+
+}
+
+
+
+
+
+
+
+
+/* ===============================
+        RESPONSIVE
+================================ */
+
+
+@media(max-width:1000px){
+
+
+.report-layout{
+
+    flex-direction:column;
+
+}
+
+
+.sidebar{
+
+    width:100%;
+
+    min-height:auto;
+
+}
+
+
+
+.report-main{
+
+    padding:25px;
+
+}
+
+
+
+.report-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+
+
+.analysis-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+
+
+.button-group{
+
+    flex-direction:column;
+
+}
+
+
+}

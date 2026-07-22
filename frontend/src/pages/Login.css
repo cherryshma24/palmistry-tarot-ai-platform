@@ -1,0 +1,176 @@
+.login-page {
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(8, 5, 20, 0.70), rgba(8, 5, 20, 0.75)),
+        url("../assets/background.png") center center/cover no-repeat;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.login-card {
+    width: 500px;
+    max-width: 95%;
+    padding: 45px;
+
+    border-radius: 25px;
+
+    background: rgba(20, 15, 45, 0.88);
+
+    backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.45),
+        0 0 45px rgba(123,47,247,.35);
+
+    color: white;
+}
+
+.login-card h2{
+    font-size:38px;
+    color:#FFD86B;
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.login-card h5{
+    text-align:center;
+    color:#d6c6ff;
+    font-size:17px;
+    font-weight:400;
+    margin-bottom:35px;
+}
+
+.login-card label{
+    display:block;
+    margin-bottom:8px;
+    font-size:15px;
+    color:#ffffff;
+    font-weight:600;
+}
+
+.login-card input{
+
+    width:100%;
+
+    height:56px;
+
+    padding:0 18px;
+
+    margin-bottom:22px;
+
+    border-radius:14px;
+
+    border:1px solid rgba(255,255,255,.12);
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    font-size:16px;
+
+    transition:.3s;
+
+    box-sizing:border-box;
+
+}
+
+.login-card input::placeholder{
+
+    color:#c9b9ff;
+
+}
+
+.login-card input:focus{
+
+    outline:none;
+
+    border-color:#9d4edd;
+
+    box-shadow:0 0 18px rgba(157,78,221,.35);
+
+}
+
+.login-btn{
+
+    width:100%;
+
+    height:58px;
+
+    margin-top:12px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:linear-gradient(135deg,#7B2FF7,#9D4EDD);
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.login-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(123,47,247,.45);
+
+}
+
+.register-link{
+
+    margin-top:28px;
+
+    text-align:center;
+
+    color:#ddd;
+
+    font-size:15px;
+
+}
+
+.register-link a{
+
+    color:#FFD86B;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+}
+
+.register-link a:hover{
+
+    color:white;
+
+}
+
+@media(max-width:768px){
+
+    .login-card{
+
+        width:100%;
+
+        padding:30px;
+
+    }
+
+    .login-card h2{
+
+        font-size:30px;
+
+    }
+
+}

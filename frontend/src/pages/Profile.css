@@ -1,0 +1,50 @@
+.profile-page {
+    min-height: 100vh;
+    background: url("../assets/background.png") center center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.profile-card {
+    width: 700px;
+    background: rgba(20, 15, 40, 0.80);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 40px;
+    color: white;
+    box-shadow: 0 0 30px rgba(150, 100, 255, 0.45);
+}
+
+.profile-card h2 {
+    color: gold;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.profile-info p {
+    font-size: 20px;
+    margin-bottom: 18px;
+}
+
+.profile-info strong {
+    color: gold;
+}
+
+.back-btn {
+    width: 100%;
+    margin-top: 25px;
+    background: #7c3aed;
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: #9333ea;
+}

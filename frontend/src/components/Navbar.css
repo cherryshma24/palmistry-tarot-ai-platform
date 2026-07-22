@@ -1,0 +1,397 @@
+/* =========================
+        NAVBAR
+========================= */
+
+
+.navbar {
+
+
+    position:sticky;
+
+
+    top:0;
+
+
+    z-index:1000;
+
+
+    width:100%;
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    padding:18px 60px;
+
+
+
+    background:
+
+    rgba(255,255,255,.08);
+
+
+
+    backdrop-filter:blur(20px);
+
+
+
+    border-bottom:
+
+    1px solid rgba(255,255,255,.12);
+
+
+
+}
+
+
+
+
+
+
+/* =========================
+        LOGO
+========================= */
+
+
+.logo {
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:15px;
+
+
+}
+
+
+
+
+.logo-icon {
+
+
+    font-size:42px;
+
+
+    color:#facc15;
+
+
+}
+
+
+
+
+.logo h2 {
+
+
+    margin:0;
+
+
+    color:white;
+
+
+    font-size:26px;
+
+
+    font-weight:800;
+
+
+}
+
+
+
+
+
+.logo span {
+
+
+    color:#c4b5fd;
+
+
+    font-size:14px;
+
+
+}
+
+
+
+
+
+
+/* =========================
+        LINKS
+========================= */
+
+
+.nav-links {
+
+
+    display:flex;
+
+
+    gap:35px;
+
+
+}
+
+
+
+
+.nav-links a {
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:10px;
+
+
+    text-decoration:none;
+
+
+    color:#ddd6fe;
+
+
+    font-size:17px;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+
+
+.nav-links a:hover {
+
+
+    color:#facc15;
+
+
+    transform:translateY(-2px);
+
+
+}
+
+
+
+
+
+
+/* =========================
+        RIGHT SIDE
+========================= */
+
+
+.nav-right {
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:25px;
+
+
+}
+
+
+
+
+
+.notification {
+
+
+    position:relative;
+
+
+    font-size:24px;
+
+
+    color:white;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+
+
+.dot {
+
+
+    position:absolute;
+
+
+    top:0;
+
+
+    right:-3px;
+
+
+    width:10px;
+
+
+    height:10px;
+
+
+    border-radius:50%;
+
+
+    background:#ef4444;
+
+
+}
+
+
+
+
+
+
+
+
+/* =========================
+        LOGOUT BUTTON
+========================= */
+
+
+.logout-btn {
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:10px;
+
+
+
+    padding:13px 28px;
+
+
+    border:none;
+
+
+    border-radius:40px;
+
+
+
+    color:white;
+
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #7c3aed,
+        #db2777
+    );
+
+
+
+    font-size:16px;
+
+
+    font-weight:700;
+
+
+
+    cursor:pointer;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+
+.logout-btn:hover {
+
+
+    transform:translateY(-3px);
+
+
+
+    box-shadow:
+
+    0 15px 35px rgba(168,85,247,.45);
+
+
+}
+
+
+
+
+
+
+
+
+/* =========================
+        MOBILE
+========================= */
+
+
+@media(max-width:900px){
+
+
+.navbar {
+
+
+    flex-direction:column;
+
+
+    padding:20px;
+
+
+    gap:20px;
+
+
+}
+
+
+
+.nav-links {
+
+
+    gap:20px;
+
+
+}
+
+
+
+.nav-right {
+
+
+    gap:15px;
+
+
+}
+
+
+
+}

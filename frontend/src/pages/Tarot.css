@@ -1,0 +1,134 @@
+.tarot-page {
+
+    min-height: calc(100vh - 75px);
+
+    background:
+    linear-gradient(
+        rgba(10,6,25,0.88),
+        rgba(10,6,25,0.90)
+    ),
+    url("../assets/background.png") center/cover no-repeat;
+
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:40px;
+
+}
+
+
+
+.tarot-card {
+
+    width:450px;
+
+    background:
+    rgba(255,255,255,0.08);
+
+
+    backdrop-filter:blur(15px);
+
+
+    padding:40px;
+
+
+    border-radius:20px;
+
+
+    color:white;
+
+
+    text-align:center;
+
+
+}
+
+
+
+.tarot-card h1 {
+
+    color:#ffd86b;
+
+}
+
+
+
+.spread-options {
+
+
+    margin:30px 0;
+
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+
+}
+
+
+
+.spread-options label {
+
+
+    background:
+    rgba(255,255,255,0.1);
+
+
+    padding:15px;
+
+
+    border-radius:12px;
+
+
+    cursor:pointer;
+
+
+}
+
+
+
+.spread-options input {
+
+    margin-right:10px;
+
+}
+
+
+
+.tarot-card button {
+
+
+    padding:15px 30px;
+
+
+    border:none;
+
+
+    border-radius:30px;
+
+
+    background:
+    linear-gradient(
+        90deg,
+        #8b5cf6,
+        #ec4899
+    );
+
+
+    color:white;
+
+
+    font-size:16px;
+
+
+    cursor:pointer;
+
+
+}
