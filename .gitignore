@@ -26,3 +26,22 @@ build/
 backend/app/uploads/
 
 datasets/palm.zip
+
+# Datasets
+datasets/
+backend/datasets/
+
+
+# AI models
+ai_models/
+*.pt
+
+# Training outputs
+runs/
+
+# Test files
+backend/test_gemini.py
+backend/test_openrouter.py
+
+# Training scripts (optional)
+backend/train_palm_pose.py
