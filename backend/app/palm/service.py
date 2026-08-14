@@ -1,109 +1,295 @@
 from app.palm.utils import preprocess_image
 from app.palm.detector import detect_hand_landmarks
 from app.palm.features import extract_palm_features
-from app.services.gemini_service import generate_palm_reading
+from app.services.ai_manager import generate_palm_reading
+from app.services.personality_service import generate_personality_profile
 from app.palm.image_enhancer import enhance_palm_image
-from app.palm.line_detector import detect_palm_lines
 from app.palm.shape_classifier import classify_palm_shape
+
+# NEW: trained YOLO palm-line model
+from app.services.palm_service import analyze_palm_image
 
 
 class PalmAnalysisService:
 
     @staticmethod
     def analyze_palm(image_bytes: bytes):
-        print("========== SERVICE.PY RUNNING ==========")
-        # Step 1: Preprocess image
+
+        print("\n========== PALM ANALYSIS STARTED ==========\n")
+
+        # =====================================================
+        # STEP 1 : PREPROCESS IMAGE
+        # =====================================================
+
         _, rgb_image = preprocess_image(image_bytes)
 
+        # =====================================================
+        # STEP 2 : ENHANCE IMAGE
+        # =====================================================
 
-        # Step 2: Enhance image
         enhanced_image = enhance_palm_image(rgb_image)
 
+        # =====================================================
+        # STEP 3 : HAND LANDMARK DETECTION
+        # =====================================================
 
-        # Step 3: Detect landmarks
         landmarks = detect_hand_landmarks(rgb_image)
 
+        # =====================================================
+        # STEP 4 : YOLO PALM LINE DETECTION
+        # =====================================================
 
-        # Step 4: Detect palm lines
-        candidate_lines = detect_palm_lines(enhanced_image)
+        # Save image temporarily because the YOLO service
+        # works with an image path.
+        import os
+        import tempfile
+        import cv2
 
+        temp_path = None
 
-        if landmarks is None:
-            return {
-                "success": False,
-                "message": "No hand detected.",
-                "total_landmarks": 0,
-                "landmarks": []
+        try:
+
+            with tempfile.NamedTemporaryFile(
+                suffix=".jpg",
+                delete=False
+            ) as temp_file:
+
+                temp_path = temp_file.name
+
+            # enhanced_image is RGB, convert to BGR for OpenCV
+            bgr_image = cv2.cvtColor(
+                enhanced_image,
+                cv2.COLOR_RGB2BGR
+            )
+
+            cv2.imwrite(
+                temp_path,
+                bgr_image
+            )
+
+            # Run trained YOLO model
+            yolo_analysis = analyze_palm_image(
+                temp_path
+            )
+
+        finally:
+
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+
+        # =====================================================
+        # YOLO LINE DATA
+        # =====================================================
+
+        palm_lines = yolo_analysis.get(
+            "palm_lines",
+            {}
+        )
+
+        overall_confidence = yolo_analysis.get(
+            "overall_confidence",
+            0.0
+        )
+
+        print("\n========== YOLO PALM LINE RESULTS ==========\n")
+
+        for name, data in palm_lines.items():
+
+            print(
+                f"{name.upper():<6} -> "
+                f"{data.get('confidence_percent', 0.0):.1f}%"
+            )
+
+        # =====================================================
+        # STEP 5 : HAND FEATURES
+        # =====================================================
+
+        if landmarks is not None:
+
+            print(
+                "Using MediaPipe Hand Detection + YOLO Palm Lines"
+            )
+
+            features = extract_palm_features(
+                landmarks
+            )
+
+            palm_shape = classify_palm_shape(
+                landmarks
+            )
+
+            features["palm_shape"] = palm_shape
+
+            features["line_detection"] = palm_lines
+
+            features["yolo_line_confidence"] = overall_confidence
+
+            features["analysis_confidence"] = overall_confidence
+
+            features["analysis_version"] = "3.0"
+
+            features["cv_engine"] = (
+                "MediaPipe + OpenCV + YOLOv8 Pose"
+            )
+
+            features["analysis_type"] = (
+                "Palmistry Intelligence"
+            )
+
+            features["ai_provider"] = "OpenRouter"
+
+            features["detected_lines"] = [
+    name.title()
+    for name, data in palm_lines.items()
+    if data.get("detected")
+]
+
+        else:
+
+            print(
+                "MediaPipe hand not detected. "
+                "Using YOLO palm-line analysis."
+            )
+
+            features = {
+
+                "palm_shape": "Unknown",
+
+                "line_detection": palm_lines,
+
+                "yolo_line_confidence":
+                    overall_confidence,
+
+                "analysis_confidence":
+                    overall_confidence,
+
+                "analysis_version": "3.0",
+
+                "cv_engine":
+                    "OpenCV + YOLOv8 Pose",
+
+                "analysis_type":
+                    "Palmistry Intelligence",
+
+                "ai_provider":
+                    "OpenRouter",
+
+                "detected_lines": [
+    name.title()
+    for name, data in palm_lines.items()
+    if data.get("detected")
+]
+
             }
 
+            palm_shape = "Unknown"
 
-        # Step 5: Extract features
-        features = extract_palm_features(landmarks)
+        # =====================================================
+        # STEP 6 : PROFILE
+        # =====================================================
 
-
-        # Step 6: Palm shape classification
-        palm_shape = classify_palm_shape(landmarks)
-
-
-        # Step 7: Line information
-        line_detection = {
-
-            "candidate_lines_detected": len(candidate_lines),
-
-            "estimated_main_lines": min(5, len(candidate_lines)),
-
-            "line_quality": (
-                "Excellent"
-                if len(candidate_lines) > 150
-                else "Good"
-                if len(candidate_lines) > 80
-                else "Moderate"
-                if len(candidate_lines) > 40
-                else "Low"
-            ),
-
-            "status": "Palm line candidates extracted successfully."
-        }
-
-
-        # Step 8: Add extra data for Gemini
-        features["palm_shape"] = palm_shape
-        features["line_detection"] = line_detection
-
-
-        # Step 9: Gemini AI reading
-
-        print("========== BEFORE GEMINI ==========")
         profile = {
+
+            "full_name": "Guest",
+
             "age": "Unknown",
+
             "gender": "Unknown",
+
+            "occupation": "Unknown",
+
             "interest": "General"
+
         }
 
+        # =====================================================
+        # STEP 7 : SEND YOLO FEATURES TO AI
+        # =====================================================
+
+        print(
+            "\n========== FEATURES SENT TO AI ==========\n"
+        )
+
+        print(features)
 
         reading = generate_palm_reading(
             profile,
             features
         )
 
-        print("========== AFTER GEMINI ==========")
+        # =====================================================
+        # STEP 8 : PERSONALITY PROFILE
+        # =====================================================
 
+        personality = generate_personality_profile(
+
+            profile=profile,
+
+            palm_reading=reading,
+
+            tarot_reading=None
+
+        )
+
+        print(
+            "\n========== AI READING GENERATED ==========\n"
+        )
+
+        print(
+            "\n========== PERSONALITY PROFILE GENERATED ==========\n"
+        )
+
+        # =====================================================
+        # STEP 9 : FINAL RESPONSE
+        # =====================================================
 
         return {
 
             "success": True,
 
-            "message": "Palm analysis completed successfully.",
+            "system": {
 
-            "total_landmarks": len(landmarks),
+                "version": "3.0",
 
-            "features": features,
+                "platform":
+                    "Palmistry & Tarot Intelligence Platform",
 
-            "palm_shape": palm_shape,
+                "cv_engine":
+                    "MediaPipe + OpenCV + YOLOv8 Pose",
 
-            "line_detection": line_detection,
+                "ai_engine":
+                    "OpenRouter",
 
-            "reading": reading,
+                "analysis_engine":
+                    "Palmistry Intelligence",
 
-            "landmarks": landmarks
+                "report_generator":
+                    "AI Interpretation Service"
+
+            },
+
+            "message":
+                "Palm analysis completed successfully.",
+
+            "total_landmarks":
+                len(landmarks) if landmarks else 0,
+
+            "features":
+                features,
+
+            "palm_shape":
+                palm_shape,
+
+            "line_detection":
+                palm_lines,
+
+            "reading":
+                reading,
+
+            "personality":
+                personality,
+
+            "landmarks":
+                landmarks if landmarks else []
+
         }
