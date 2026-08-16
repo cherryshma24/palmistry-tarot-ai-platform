@@ -17,7 +17,7 @@
                 "faith", 
                 "inexperience", 
                 "innocence"
-            ], 
+            ],  
             "meanings": {
                 "light": [
                     "Freeing yourself from limitation", 
@@ -39,7 +39,7 @@
                     "Behaving inappropriately"
                 ]
             },
-		"Archetype": "The Divine Madman",
+		"Archetype" : "The Divine Madman",
 		"Hebrew Alphabet": "Aleph/Ox/1",
 		"Numerology": "0 (off the scale; pure potential)",
 		"Elemental": "Air",
@@ -79,7 +79,7 @@
                     "Taking shortcuts"
                 ]
             },
-		"Archetype" : "The Ego/The Self",
+		 "Archetype"  : "The Ego/The Self",
 		"Hebrew Alphabet" : "Beth/House/2",
 		"Numerology" : "1 (origins, unity, seeds)",
 		"Elemental" : "The Sun/Mercury",		"Mythical/Spiritual" : "Thoth, the Egyptian god of wisdom, known to the Greeks as Hermes and to the Romans as Mercury. Christ working miracles. Brahma, the Creator.",

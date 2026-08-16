@@ -1,134 +1,1369 @@
-.tarot-page {
+/* ============================================================
+   TAROT PAGE
+============================================================ */
 
+.tarot-page {
     min-height: calc(100vh - 75px);
 
     background:
-    linear-gradient(
-        rgba(10,6,25,0.88),
-        rgba(10,6,25,0.90)
-    ),
-    url("../assets/background.png") center/cover no-repeat;
+        linear-gradient(
+            rgba(8, 4, 22, 0.94),
+            rgba(15, 7, 35, 0.97)
+        ),
+        url("../assets/background.png")
+        center / cover
+        no-repeat;
 
+    padding: 35px 30px 70px;
 
-    display:flex;
+    color: white;
 
-    justify-content:center;
-
-    align-items:center;
-
-    padding:40px;
-
+    overflow-x: hidden;
 }
 
 
+/* ============================================================
+   CONTAINER
+============================================================ */
 
-.tarot-card {
+.tarot-container {
+    width: 100%;
+    max-width: 1400px;
 
-    width:450px;
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.tarot-header {
+    width: 100%;
+
+    text-align: center;
+
+    margin-bottom: 24px;
+}
+
+.tarot-symbol {
+    font-size: 36px;
+
+    margin-bottom: 4px;
+
+    filter:
+        drop-shadow(
+            0 0 12px
+            rgba(255, 216, 107, 0.5)
+        );
+}
+
+.tarot-header h1 {
+    margin: 0;
+
+    font-size: 32px;
+    font-weight: 800;
 
     background:
-    rgba(255,255,255,0.08);
+        linear-gradient(
+            90deg,
+            #ffd86b,
+            #e8b4ff,
+            #ffd86b
+        );
 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-    backdrop-filter:blur(15px);
+.tarot-header p {
+    color: #cfc6df;
 
+    font-size: 13px;
 
-    padding:40px;
-
-
-    border-radius:20px;
-
-
-    color:white;
-
-
-    text-align:center;
-
-
+    margin-top: 7px;
 }
 
 
+/* ============================================================
+   SPREAD SELECTOR
+============================================================ */
 
-.tarot-card h1 {
+.spread-selector {
+    display: flex;
 
-    color:#ffd86b;
+    justify-content: center;
 
+    gap: 14px;
+
+    margin-bottom: 18px;
 }
 
+.spread-button {
+    width: 185px;
 
+    min-height: 76px;
 
-.spread-options {
+    padding: 10px 16px;
 
+    border-radius: 15px;
 
-    margin:30px 0;
-
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:20px;
-
-
-}
-
-
-
-.spread-options label {
-
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
 
     background:
-    rgba(255,255,255,0.1);
+        rgba(255, 255, 255, 0.06);
 
+    color: white;
 
-    padding:15px;
+    cursor: pointer;
 
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
 
-    border-radius:12px;
+    display: flex;
 
+    flex-direction: column;
 
-    cursor:pointer;
+    align-items: center;
 
+    justify-content: center;
 
+    gap: 3px;
+
+    font-size: 19px;
+}
+
+.spread-button span {
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+.spread-button small {
+    font-size: 9px;
+
+    color: #aaa0bd;
+}
+
+.spread-button:hover {
+    transform: translateY(-3px);
+
+    border-color: #a855f7;
+
+    box-shadow:
+        0 8px 25px
+        rgba(168, 85, 247, 0.18);
+}
+
+.spread-button.active {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(124, 58, 237, 0.38),
+            rgba(217, 70, 239, 0.25)
+        );
+
+    border-color: #c084fc;
+
+    box-shadow:
+        0 0 25px
+        rgba(168, 85, 247, 0.28);
 }
 
 
+/* ============================================================
+   SELECTION INFO
+============================================================ */
 
-.spread-options input {
+.selection-info {
+    text-align: center;
 
-    margin-right:10px;
+    margin: 8px auto 12px;
 
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 3px;
+}
+
+.selection-info strong {
+    color: #ffd86b;
+
+    font-size: 15px;
+}
+
+.selection-info span {
+    color: #aaa2b8;
+
+    font-size: 11px;
 }
 
 
+/* ============================================================
+   CIRCLE DECK SECTION
+============================================================ */
 
-.tarot-card button {
+.circle-deck-section {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    margin-top: 2px;
+}
 
 
-    padding:15px 30px;
+/* ============================================================
+   SIX CARD CIRCLE
+============================================================ */
+
+.tarot-circle {
+    position: relative;
+
+    width: 500px;
+    height: 500px;
+
+    margin: 0 auto;
+
+    border-radius: 50%;
+
+    display: block;
+}
 
 
-    border:none;
+/* ============================================================
+   SUBTLE CIRCLE GLOW
+============================================================ */
 
+.tarot-circle::before {
+    content: "";
 
-    border-radius:30px;
+    position: absolute;
 
+    left: 50%;
+    top: 50%;
+
+    width: 310px;
+    height: 310px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border-radius: 50%;
 
     background:
-    linear-gradient(
-        90deg,
-        #8b5cf6,
-        #ec4899
-    );
+        radial-gradient(
+            circle,
+            rgba(168, 85, 247, 0.07),
+            rgba(168, 85, 247, 0.025) 45%,
+            transparent 72%
+        );
+
+    pointer-events: none;
+
+    z-index: 0;
+}
 
 
-    color:white;
+/* ============================================================
+   CENTER SYMBOL
+============================================================ */
+
+.circle-center {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    width: 64px;
+    height: 64px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(168, 85, 247, 0.20),
+            rgba(20, 8, 45, 0.80)
+        );
+
+    border:
+        1px solid
+        rgba(255, 216, 107, 0.55);
+
+    box-shadow:
+        0 0 25px
+        rgba(168, 85, 247, 0.30),
+
+        inset 0 0 15px
+        rgba(255, 255, 255, 0.05);
+
+    z-index: 3;
+}
+
+.circle-center span {
+    color: #ffd86b;
+
+    font-size: 27px;
+
+    text-shadow:
+        0 0 15px
+        rgba(255, 216, 107, 0.85);
+}
 
 
-    font-size:16px;
+/* ============================================================
+   ALL SIX CARD POSITIONS
+============================================================ */
+
+.circle-card-position {
+    position: absolute;
+
+    width: 105px;
+    height: 170px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    z-index: 5;
+
+    transform:
+        translate(-50%, -50%);
+
+    transition:
+        transform 0.35s ease,
+        filter 0.35s ease,
+        opacity 0.35s ease;
+}
 
 
-    cursor:pointer;
+/* ============================================================
+   CARD 1
+   TOP
+============================================================ */
+
+.position-1 {
+    left: 50%;
+    top: 12%;
+}
 
 
+/* ============================================================
+   CARD 2
+   UPPER RIGHT
+============================================================ */
+
+.position-2 {
+    left: 82%;
+    top: 32%;
+}
+
+
+/* ============================================================
+   CARD 3
+   LOWER RIGHT
+============================================================ */
+
+.position-3 {
+    left: 82%;
+    top: 68%;
+}
+
+
+/* ============================================================
+   CARD 4
+   BOTTOM
+============================================================ */
+
+.position-4 {
+    left: 50%;
+    top: 88%;
+}
+
+
+/* ============================================================
+   CARD 5
+   LOWER LEFT
+============================================================ */
+
+.position-5 {
+    left: 18%;
+    top: 68%;
+}
+
+
+/* ============================================================
+   CARD 6
+   UPPER LEFT
+============================================================ */
+
+.position-6 {
+    left: 18%;
+    top: 32%;
+}
+
+
+/* ============================================================
+   CARD HOVER
+============================================================ */
+
+.circle-card-position:hover:not(:disabled) {
+    transform:
+        translate(-50%, -50%)
+        translateY(-8px)
+        scale(1.06);
+
+    filter:
+        drop-shadow(
+            0 0 18px
+            rgba(168, 85, 247, 0.70)
+        );
+}
+
+
+/* ============================================================
+   DISABLED CARD
+============================================================ */
+
+.circle-card-position:disabled {
+    cursor: not-allowed;
+}
+
+
+/* ============================================================
+   CARD INNER
+============================================================ */
+
+.tarot-card-inner {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 13px;
+
+    transform-style: preserve-3d;
+
+    transition:
+        transform 0.7s ease;
+
+    box-shadow:
+        0 8px 25px
+        rgba(0, 0, 0, 0.55);
+}
+
+
+/* ============================================================
+   REVEALED CARD
+============================================================ */
+
+.tarot-card-inner.revealed {
+    transform:
+        rotateY(180deg);
+
+    box-shadow:
+        0 0 30px
+        rgba(255, 216, 107, 0.55);
+}
+
+
+/* ============================================================
+   CARD FACE
+============================================================ */
+
+.tarot-card-face {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 13px;
+
+    overflow: hidden;
+
+    backface-visibility: hidden;
+
+    -webkit-backface-visibility: hidden;
+}
+
+
+/* ============================================================
+   CARD BACK
+============================================================ */
+
+.tarot-card-back {
+    z-index: 2;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #a07bd2 0%,
+            #68448f 35%,
+            #3c2160 65%,
+            #241238 100%
+        );
+
+    border:
+        2px solid
+        #d8a94e;
+
+    box-shadow:
+        inset 0 0 20px
+        rgba(255, 255, 255, 0.15),
+
+        0 0 15px
+        rgba(168, 85, 247, 0.35);
+}
+
+
+/* ============================================================
+   CARD BACK INNER BORDER
+============================================================ */
+
+.tarot-card-back::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 7px;
+
+    border:
+        1px solid
+        rgba(255, 216, 107, 0.70);
+
+    border-radius: 9px;
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   CARD BACK SYMBOL
+============================================================ */
+
+.card-back-symbol {
+    font-size: 26px;
+
+    color: #ffd86b;
+
+    text-shadow:
+        0 0 15px
+        rgba(255, 216, 107, 0.85);
+
+    margin-bottom: 14px;
+
+    position: relative;
+}
+
+
+/* ============================================================
+   CARD BACK TEXT
+============================================================ */
+
+.tarot-card-back span {
+    font-size: 7px;
+
+    letter-spacing: 3px;
+
+    color: #e9d5ff;
+
+    position: relative;
+}
+
+
+/* ============================================================
+   CARD FRONT
+============================================================ */
+
+.tarot-card-front {
+    transform:
+        rotateY(180deg);
+
+    background: #170b2c;
+
+    border:
+        2px solid
+        #ffd86b;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+/* ============================================================
+   REAL TAROT IMAGE
+============================================================ */
+
+.tarot-card-front img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    border-radius: 10px;
+}
+
+
+/* ============================================================
+   HIDE FRONT BEFORE REVEAL
+============================================================ */
+
+.tarot-card-inner:not(.revealed)
+.tarot-card-front {
+    visibility: hidden;
+}
+
+
+/* ============================================================
+   SELECTION BADGE
+============================================================ */
+
+.circle-selection-badge {
+    position: absolute;
+
+    left: 50%;
+
+    bottom: -17px;
+
+    transform:
+        translateX(-50%);
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffd86b,
+            #f59e0b
+        );
+
+    color: #241335;
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.5px;
+
+    white-space: nowrap;
+
+    box-shadow:
+        0 0 15px
+        rgba(255, 216, 107, 0.55);
+
+    z-index: 20;
+}
+
+
+/* ============================================================
+   SHUFFLING
+============================================================ */
+
+.tarot-circle.shuffling
+.circle-card-position {
+    animation:
+        shuffleCards 0.9s ease-in-out;
+}
+
+.tarot-circle.shuffling
+.tarot-card-inner {
+    animation:
+        cardShuffle 0.9s ease-in-out;
+}
+
+
+/* ============================================================
+   SHUFFLE CARD POSITION ANIMATION
+============================================================ */
+
+@keyframes shuffleCards {
+
+    0% {
+        transform:
+            translate(-50%, -50%)
+            rotate(0deg);
+    }
+
+    20% {
+        transform:
+            translate(-50%, -50%)
+            rotate(-8deg)
+            translateY(-10px);
+    }
+
+    40% {
+        transform:
+            translate(-50%, -50%)
+            rotate(8deg)
+            translateY(8px);
+    }
+
+    60% {
+        transform:
+            translate(-50%, -50%)
+            rotate(-6deg)
+            translateY(-6px);
+    }
+
+    80% {
+        transform:
+            translate(-50%, -50%)
+            rotate(4deg)
+            translateY(4px);
+    }
+
+    100% {
+        transform:
+            translate(-50%, -50%)
+            rotate(0deg);
+    }
+}
+
+
+/* ============================================================
+   CARD SHUFFLE FLIP
+============================================================ */
+
+@keyframes cardShuffle {
+
+    0% {
+        transform:
+            rotateY(0deg)
+            rotate(0deg);
+    }
+
+    30% {
+        transform:
+            rotateY(90deg)
+            rotate(5deg);
+    }
+
+    60% {
+        transform:
+            rotateY(180deg)
+            rotate(-5deg);
+    }
+
+    100% {
+        transform:
+            rotateY(360deg)
+            rotate(0deg);
+    }
+}
+
+
+/* ============================================================
+   SHUFFLE BUTTON
+============================================================ */
+
+.shuffle-button {
+    margin-top: 8px;
+
+    padding: 11px 26px;
+
+    border:
+        1px solid
+        #c084fc;
+
+    border-radius: 30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #a855f7
+        );
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 25px
+        rgba(124, 58, 237, 0.35);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        opacity 0.3s ease;
+
+    position: relative;
+
+    z-index: 20;
+}
+
+.shuffle-button:hover:not(:disabled) {
+    transform:
+        translateY(-3px)
+        scale(1.03);
+
+    box-shadow:
+        0 12px 30px
+        rgba(217, 70, 239, 0.45);
+}
+
+.shuffle-button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* ============================================================
+   SELECTED AREA
+============================================================ */
+
+.selected-area {
+    width: 100%;
+
+    margin: 30px auto;
+
+    text-align: center;
+}
+
+.selected-area h3 {
+    color: #d8b4ff;
+
+    margin-bottom: 18px;
+
+    font-size: 18px;
+}
+
+.selected-cards {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 20px;
+
+    flex-wrap: wrap;
+}
+
+.selected-card {
+    width: 135px;
+
+    padding: 10px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    border:
+        1px solid
+        rgba(216, 180, 255, 0.35);
+
+    box-shadow:
+        0 0 20px
+        rgba(168, 85, 247, 0.18);
+}
+
+.selected-position {
+    font-size: 9px;
+
+    color: #ffd86b;
+
+    font-weight: 700;
+
+    margin-bottom: 8px;
+
+    letter-spacing: 1px;
+}
+
+.selected-card img {
+    width: 100%;
+
+    border-radius: 9px;
+
+    display: block;
+}
+
+.selected-card strong {
+    display: block;
+
+    margin-top: 10px;
+
+    font-size: 12px;
+}
+
+
+/* ============================================================
+   REVEAL AREA
+============================================================ */
+
+.reveal-area {
+    width: 100%;
+
+    text-align: center;
+
+    margin-top: 18px;
+
+    padding-bottom: 30px;
+}
+
+.reveal-button {
+    padding: 14px 36px;
+
+    border: none;
+
+    border-radius: 40px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #d946ef
+        );
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 30px
+        rgba(124, 58, 237, 0.35);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.reveal-button:hover:not(:disabled) {
+    transform:
+        translateY(-3px)
+        scale(1.03);
+
+    box-shadow:
+        0 15px 35px
+        rgba(217, 70, 239, 0.45);
+}
+
+.reveal-button:disabled {
+    opacity: 0.4;
+
+    cursor: not-allowed;
+}
+
+.reveal-area p {
+    margin-top: 9px;
+
+    color: #aaa2b8;
+
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   LOADING
+============================================================ */
+
+.tarot-loading {
+    min-height: 70vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-align: center;
+}
+
+.mystic-symbol {
+    font-size: 65px;
+
+    animation:
+        tarotPulse 1.5s infinite;
+}
+
+.tarot-loading h2 {
+    color: #ffd86b;
+}
+
+.tarot-loading p {
+    color: #aaa2b8;
+}
+
+
+/* ============================================================
+   LOADING ANIMATION
+============================================================ */
+
+@keyframes tarotPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.15);
+
+        opacity: 1;
+    }
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 800px) {
+
+    .tarot-page {
+        padding:
+            25px 15px 55px;
+    }
+
+    .tarot-circle {
+        width: 460px;
+        height: 460px;
+    }
+
+    .circle-card-position {
+        width: 96px;
+        height: 155px;
+    }
+
+    .circle-center {
+        width: 60px;
+        height: 60px;
+    }
+
+    .position-1 {
+        top: 12%;
+    }
+
+    .position-2 {
+        left: 81%;
+        top: 32%;
+    }
+
+    .position-3 {
+        left: 81%;
+        top: 68%;
+    }
+
+    .position-4 {
+        top: 88%;
+    }
+
+    .position-5 {
+        left: 19%;
+        top: 68%;
+    }
+
+    .position-6 {
+        left: 19%;
+        top: 32%;
+    }
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 600px) {
+
+    .tarot-page {
+        padding:
+            22px 10px 45px;
+    }
+
+    .tarot-header {
+        margin-bottom: 18px;
+    }
+
+    .tarot-symbol {
+        font-size: 30px;
+    }
+
+    .tarot-header h1 {
+        font-size: 27px;
+    }
+
+    .tarot-header p {
+        font-size: 11px;
+    }
+
+    .spread-selector {
+        flex-direction: row;
+
+        gap: 8px;
+    }
+
+    .spread-button {
+        width: 145px;
+
+        min-height: 70px;
+
+        padding: 8px;
+    }
+
+    .spread-button span {
+        font-size: 12px;
+    }
+
+    .spread-button small {
+        font-size: 8px;
+    }
+
+    .selection-info {
+        margin-top: 7px;
+    }
+
+    .selection-info strong {
+        font-size: 13px;
+    }
+
+    .selection-info span {
+        font-size: 10px;
+    }
+
+    .tarot-circle {
+        width: 360px;
+        height: 360px;
+    }
+
+    .circle-card-position {
+        width: 72px;
+        height: 118px;
+    }
+
+    .position-1 {
+        left: 50%;
+        top: 12%;
+    }
+
+    .position-2 {
+        left: 82%;
+        top: 32%;
+    }
+
+    .position-3 {
+        left: 82%;
+        top: 68%;
+    }
+
+    .position-4 {
+        left: 50%;
+        top: 88%;
+    }
+
+    .position-5 {
+        left: 18%;
+        top: 68%;
+    }
+
+    .position-6 {
+        left: 18%;
+        top: 32%;
+    }
+
+    .circle-center {
+        width: 50px;
+        height: 50px;
+    }
+
+    .circle-center span {
+        font-size: 21px;
+    }
+
+    .card-back-symbol {
+        font-size: 19px;
+
+        margin-bottom: 8px;
+    }
+
+    .tarot-card-back span {
+        font-size: 5px;
+
+        letter-spacing: 2px;
+    }
+
+    .circle-selection-badge {
+        font-size: 6px;
+
+        padding: 4px 7px;
+
+        bottom: -14px;
+    }
+
+    .shuffle-button {
+        font-size: 12px;
+
+        padding: 10px 22px;
+
+        margin-top: 5px;
+    }
+
+    .reveal-button {
+        font-size: 13px;
+
+        padding: 13px 30px;
+    }
+}
+
+
+/* ============================================================
+   VERY SMALL SCREENS
+============================================================ */
+
+@media (max-width: 430px) {
+
+    .tarot-circle {
+        width: 320px;
+        height: 320px;
+    }
+
+    .circle-card-position {
+        width: 64px;
+        height: 105px;
+    }
+
+    .position-1 {
+        top: 12%;
+    }
+
+    .position-2 {
+        left: 82%;
+        top: 32%;
+    }
+
+    .position-3 {
+        left: 82%;
+        top: 68%;
+    }
+
+    .position-4 {
+        top: 88%;
+    }
+
+    .position-5 {
+        left: 18%;
+        top: 68%;
+    }
+
+    .position-6 {
+        left: 18%;
+        top: 32%;
+    }
+
+    .circle-center {
+        width: 45px;
+        height: 45px;
+    }
+
+    .circle-center span {
+        font-size: 19px;
+    }
+
+    .spread-button {
+        width: 140px;
+    }
+}
+
+/* ============================================================
+   TAROT IMAGE FALLBACK
+============================================================ */
+
+.tarot-image-fallback {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #9d7ad0 0%,
+            #65418d 40%,
+            #241238 100%
+        );
+
+    color: #ffd86b;
+
+    text-align: center;
+}
+
+.tarot-image-fallback span {
+    font-size: 32px;
+
+    text-shadow:
+        0 0 15px
+        rgba(255, 216, 107, 0.9);
+}
+
+.tarot-image-fallback small {
+    margin-top: 8px;
+
+    font-size: 8px;
+
+    letter-spacing: 3px;
+
+    color: #e9d5ff;
 }

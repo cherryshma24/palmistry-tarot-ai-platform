@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router as api_router
 from app.database.connection import engine
 from app.database.base import Base
+from fastapi.staticfiles import StaticFiles
 from app.models.user import User
 from app.auth.register import router as register_router  # <-- Add this
 from app.auth.login import router as login_router
@@ -18,6 +19,17 @@ app = FastAPI(
     description="AI-powered platform for Palmistry and Tarot Reading",
     version="1.0.0"
 )
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+TAROT_IMAGES_DIR = BASE_DIR / "datasets" / "tarot" / "images"
+
+app.mount(
+    "/tarot-images",
+    StaticFiles(directory=str(TAROT_IMAGES_DIR)),
+    name="tarot-images"
+)
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

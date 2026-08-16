@@ -10,6 +10,12 @@ import {
   FaSignOutAlt,
   FaRobot,
   FaUser,
+  FaHeart,
+  FaBrain,
+  FaCompass,
+  FaBriefcase,
+  FaMoneyBillWave,
+  FaArrowUp,
   FaCheckCircle,
 } from "react-icons/fa";
 
@@ -20,141 +26,572 @@ function Report() {
 
   const [analysis, setAnalysis] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [palmImage, setPalmImage] = useState(null);
 
   useEffect(() => {
     const result = localStorage.getItem("analysis_result");
     const userProfile = localStorage.getItem("user_profile");
+    const storedPalmImage = localStorage.getItem("palm_image");
 
-    if (result) setAnalysis(JSON.parse(result));
-    if (userProfile) setProfile(JSON.parse(userProfile));
+    if (result) {
+      try {
+        setAnalysis(JSON.parse(result));
+      } catch (error) {
+        console.error("Invalid analysis result:", error);
+      }
+    }
+
+    if (userProfile) {
+      try {
+        setProfile(JSON.parse(userProfile));
+      } catch (error) {
+        console.error("Invalid profile:", error);
+      }
+    }
+
+    if (storedPalmImage) {
+      setPalmImage(storedPalmImage);
+    }
   }, []);
 
+ 
+
+const reading = analysis?.reading;
+
+// Use actual CV/YOLO line detection first.
+// reading.palm_analysis currently contains fallback AI values (0),
+// while analysis.line_detection contains the real detected values.
+const lineDetection = analysis?.line_detection || {};
+
+const palmAnalysis = {
+  heart_line: {
+    ...(reading?.palm_analysis?.heart_line || {}),
+    ...(lineDetection?.heart || {}),
+  },
+
+  life_line: {
+    ...(reading?.palm_analysis?.life_line || {}),
+    ...(lineDetection?.life || {}),
+  },
+
+  head_line: {
+    ...(reading?.palm_analysis?.head_line || {}),
+    ...(lineDetection?.head || {}),
+  },
+
+  fate_line: {
+    ...(reading?.palm_analysis?.fate_line || {}),
+    ...(lineDetection?.fate || {}),
+  },
+};
+
+// Calculate confidence from actual detected palm lines
+const lineConfidences = [
+  lineDetection?.heart?.confidence_percent,
+  lineDetection?.life?.confidence_percent,
+  lineDetection?.head?.confidence_percent,
+  lineDetection?.fate?.confidence_percent,
+].filter(
+  (value) => typeof value === "number"
+);
+
+const calculatedConfidence =
+  lineConfidences.length > 0
+    ? Math.round(
+        lineConfidences.reduce(
+          (sum, value) => sum + value,
+          0
+        ) / lineConfidences.length
+      )
+    : 0;
+
+const confidence =
+  reading?.confidence > 0
+    ? reading.confidence
+    : calculatedConfidence;
+
+const fortuneScore =
+  reading?.fortune_score > 0
+    ? reading.fortune_score
+    : calculatedConfidence;
+
+
+// ============================================================
+// PALM LINE DATA
+// ============================================================
+
+const getLine = (lineName) => {
+
+  const backendNameMap = {
+    heart_line: "heart",
+    life_line: "life",
+    head_line: "head",
+    fate_line: "fate",
+  };
+
+  const backendName =
+    backendNameMap[lineName] || lineName;
+
+  const detectedLine =
+    analysis?.line_detection?.[backendName] || {};
+
+  const readingLine =
+    reading?.palm_analysis?.[lineName] || {};
+
+  // Combine BOTH:
+  // - interpretation comes from AI reading
+  // - confidence/length/angle come from CV
+  return {
+    ...readingLine,
+    ...detectedLine,
+
+    interpretation:
+      readingLine?.interpretation ||
+      detectedLine?.interpretation ||
+      "Interpretation not available.",
+  };
+};
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    navigate("/");
+  };
+
+  const startNewReading = () => {
+    localStorage.removeItem("analysis_result");
+    localStorage.removeItem("palm_image");
+    navigate("/palm-upload");
+  };
+
   return (
-    <div className="report-layout">
+    <div className="reading-page">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
 
-      <aside className="sidebar">
+      <aside className="reading-sidebar">
 
-        <div className="logo">🔮 PalmAI</div>
+        <div className="reading-logo">
+          <span>🔮</span>
+          <strong>PalmAI</strong>
+        </div>
 
-        <div className="menu">
+        <nav className="reading-nav">
 
-          <div
-            className="menu-item"
-            onClick={() => navigate("/dashboard")}
-          >
+          <button onClick={() => navigate("/dashboard")}>
             <FaHome />
-            Dashboard
-          </div>
+            <span>Dashboard</span>
+          </button>
 
-          <div
-            className="menu-item"
-            onClick={() => navigate("/palm-upload")}
-          >
+          <button onClick={() => navigate("/palm-upload")}>
             <FaHandPaper />
-            Palm Analysis
-          </div>
+            <span>Palm Analysis</span>
+          </button>
 
-          <div
-            className="menu-item"
-            onClick={() => navigate("/tarot")}
-          >
+          <button onClick={() => navigate("/tarot")}>
             <FaStar />
-            Tarot Reading
-          </div>
+            <span>Tarot Reading</span>
+          </button>
 
-          <div
-            className="menu-item active"
+          <button
+            className="active"
             onClick={() => navigate("/report")}
           >
             <FaChartLine />
-            Reports
-          </div>
+            <span>Reports</span>
+          </button>
 
-          <div
-            className="menu-item"
-            onClick={() => navigate("/profile")}
-          >
+          <button onClick={() => navigate("/profile")}>
             <FaUserCircle />
-            Profile
-          </div>
+            <span>Profile</span>
+          </button>
 
-        </div>
+        </nav>
 
-        <div
-          className="logout"
-          onClick={() => {
-            localStorage.removeItem("access_token");
-            navigate("/");
-          }}
+        <button
+          className="reading-logout"
+          onClick={handleLogout}
         >
           <FaSignOutAlt />
-          Logout
-        </div>
+          <span>Logout</span>
+        </button>
 
       </aside>
 
-      {/* ================= MAIN ================= */}
+      {/* =====================================================
+          MAIN REPORT
+      ===================================================== */}
 
-      <main className="report-main">
+      <main className="reading-main">
 
-        <header className="report-header">
+        {/* ===================================================
+            HEADER
+        =================================================== */}
 
-          <h1>🔮 AI Palmistry Intelligence Report</h1>
+        <header className="reading-header">
 
-          <p>
-            Generated using MediaPipe, OpenCV and the AI Interpretation Engine.
-            This report combines computer vision, feature extraction and AI-generated insights.
-          </p>
+          <div className="header-icon">
+            🔮
+          </div>
+
+          <div>
+            <p className="eyebrow">
+              VEDIC & AI PALMISTRY ANALYSIS
+            </p>
+
+            <h1>
+              Your Palm Reading
+            </h1>
+
+            <p className="header-description">
+              AI-powered interpretation of your palm structure,
+              major lines, personality and life insights.
+            </p>
+          </div>
 
         </header>
 
-        {/* ================= AI SUMMARY ================= */}
 
-        <section className="glass-card">
+        {/* ===================================================
+            REPORT META
+        =================================================== */}
 
-          <h2>
-            <FaRobot /> AI Summary
-          </h2>
+        <section className="report-meta">
 
-          <p>
-            Palm successfully analyzed using computer vision and AI.
-            The extracted palm characteristics have been interpreted to generate
-            a personalized personality profile and life insights.
-          </p>
+          <div>
+            <span>Prepared For</span>
+            <strong>
+              {profile?.full_name || "Palm Reader"}
+            </strong>
+          </div>
 
-          <div className="analysis-grid">
+          <div>
+            <span>Analysis Engine</span>
+            <strong>
+              MediaPipe + YOLOv8 + OpenRouter
+            </strong>
+          </div>
 
-            <div className="analysis-item">
-              <FaCheckCircle />
-              <h3>{analysis?.total_landmarks || 0}</h3>
-              <p>Landmarks</p>
+          <div>
+            <span>AI Confidence</span>
+            <strong className="gold-text">
+              {confidence}%
+            </strong>
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            PALM READING HERO
+        =================================================== */}
+
+        <section className="palm-reading-card">
+
+          {/* LEFT INFORMATION */}
+
+          <div className="major-lines left-lines">
+
+            <div className="section-label">
+              <span>✦</span>
+              MAJOR LINES
             </div>
 
-            <div className="analysis-item">
-              <FaCheckCircle />
-              <h3>Palm Features</h3>
-              <p>Extracted</p>
+            <LineCard
+              icon="❤️"
+              title="Heart Line"
+              data={getLine("heart_line")}
+            />
+
+            <LineCard
+              icon="🟢"
+              title="Life Line"
+              data={getLine("life_line")}
+            />
+
+            <LineCard
+              icon="🧠"
+              title="Head Line"
+              data={getLine("head_line")}
+            />
+
+            <LineCard
+              icon="✨"
+              title="Fate Line"
+              data={getLine("fate_line")}
+            />
+
+          </div>
+
+
+          {/* CENTER PALM */}
+
+          <div className="palm-center">
+
+            <div className="palm-title">
+              <span>YOUR PALM</span>
+              <small>AI VISION ANALYSIS</small>
             </div>
 
-            <div className="analysis-item">
-              <FaCheckCircle />
-              <h3>AI Report</h3>
-              <p>Generated</p>
+            <div className="palm-image-frame">
+
+              {palmImage ? (
+                <img
+                  src={palmImage}
+                  alt="Analyzed Palm"
+                />
+              ) : (
+                <div className="no-palm-image">
+                  <span>✋</span>
+                  <p>Palm image unavailable</p>
+                </div>
+              )}
+
+              <div className="scan-line"></div>
+
             </div>
 
-            <div className="analysis-item">
+            <div className="palm-status">
               <FaCheckCircle />
-              <h3>
-                {analysis?.reading?.confidence ??
-                  Math.round(
-                    (analysis?.features?.analysis_confidence ?? 0) * 100
-                  )}
-                %
-              </h3>
+              <span>
+                {analysis?.total_landmarks || 21} landmarks detected
+              </span>
+            </div>
 
-              <p>AI Confidence</p>
+          </div>
+
+
+          {/* RIGHT INFORMATION */}
+
+          <div className="major-lines right-lines">
+
+            <div className="section-label">
+              <span>✦</span>
+              PALM INSIGHTS
+            </div>
+
+            <InsightBox
+              icon="🌟"
+              title="Palm Shape"
+              value={analysis?.palm_shape?.shape || "Unknown"}
+              description={
+                analysis?.palm_shape?.ratio
+                  ? `Aspect ratio: ${analysis.palm_shape.ratio}`
+                  : "Shape analysis available"
+              }
+            />
+
+            <InsightBox
+              icon="🧠"
+              title="Personality"
+              value={
+                Array.isArray(reading?.personality?.traits)
+                  ? reading.personality.traits
+                      .slice(0, 2)
+                      .join(" • ")
+                  : "AI Profile"
+              }
+              description="Based on extracted palm characteristics."
+            />
+
+            <InsightBox
+              icon="💼"
+              title="Career"
+              value={
+                reading?.career?.career_score != null
+                  ? `${reading.career.career_score}%`
+                  : "Analyzed"
+              }
+              description={
+                Array.isArray(reading?.career?.suitable_roles)
+                  ? reading.career.suitable_roles
+                      .slice(0, 2)
+                      .join(" • ")
+                  : "Career insights generated"
+              }
+            />
+
+            <InsightBox
+              icon="💫"
+              title="Fortune"
+              value={`${fortuneScore}%`}
+              description={
+                fortuneScore >= 90
+                  ? "Excellent future outlook"
+                  : fortuneScore >= 80
+                  ? "Very positive future"
+                  : fortuneScore >= 70
+                  ? "Good opportunities ahead"
+                  : "Keep growing"
+              }
+            />
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            PALM LINE DETAILS
+        =================================================== */}
+
+        <section className="report-section">
+
+          <div className="section-heading">
+
+            <span>✦</span>
+
+            <div>
+              <p>DETAILED ANALYSIS</p>
+              <h2>Major Palm Lines</h2>
+            </div>
+
+          </div>
+
+          <div className="line-grid">
+
+            <DetailedLine
+              icon={<FaHeart />}
+              title="Heart Line"
+              color="heart"
+              data={getLine("heart_line")}
+            />
+
+            <DetailedLine
+              icon={<FaBrain />}
+              title="Head Line"
+              color="head"
+              data={getLine("head_line")}
+            />
+
+            <DetailedLine
+              icon={<FaCompass />}
+              title="Life Line"
+              color="life"
+              data={getLine("life_line")}
+            />
+
+            <DetailedLine
+              icon={<FaArrowUp />}
+              title="Fate Line"
+              color="fate"
+              data={getLine("fate_line")}
+            />
+
+          </div>
+
+        </section>
+
+
+        {/* ===================================================
+            PERSONALITY
+        =================================================== */}
+
+        <section className="report-section">
+
+          <div className="section-heading">
+            <span>✦</span>
+
+            <div>
+              <p>PERSONALITY INSIGHT</p>
+              <h2>Your Character Profile</h2>
+            </div>
+          </div>
+
+          <div className="personality-grid">
+
+            <div className="personality-card">
+
+              <span className="card-symbol">
+                🧠
+              </span>
+
+              <h3>Core Traits</h3>
+
+              <div className="tag-container">
+
+                {Array.isArray(reading?.personality?.traits) &&
+                reading.personality.traits.length > 0 ? (
+                  reading.personality.traits.map(
+                    (trait, index) => (
+                      <span key={index}>
+                        {trait}
+                      </span>
+                    )
+                  )
+                ) : (
+                  <span>Not Available</span>
+                )}
+
+              </div>
+
+            </div>
+
+
+            <div className="personality-card">
+
+              <span className="card-symbol">
+                💪
+              </span>
+
+              <h3>Strengths</h3>
+
+              <ul>
+
+                {Array.isArray(
+                  reading?.personality?.strengths
+                ) ? (
+                  reading.personality.strengths.map(
+                    (item, index) => (
+                      <li key={index}>
+                        <FaCheckCircle />
+                        {item}
+                      </li>
+                    )
+                  )
+                ) : (
+                  <li>
+                    <FaCheckCircle />
+                    Not Available
+                  </li>
+                )}
+
+              </ul>
+
+            </div>
+
+
+            <div className="personality-card">
+
+              <span className="card-symbol">
+                🌱
+              </span>
+
+              <h3>Growth Areas</h3>
+
+              <ul>
+
+                {Array.isArray(
+                  reading?.personality?.growth_areas
+                ) ? (
+                  reading.personality.growth_areas.map(
+                    (item, index) => (
+                      <li key={index}>
+                        <FaArrowUp />
+                        {item}
+                      </li>
+                    )
+                  )
+                ) : (
+                  <li>
+                    <FaArrowUp />
+                    Not Available
+                  </li>
+                )}
+
+              </ul>
 
             </div>
 
@@ -162,429 +599,111 @@ function Report() {
 
         </section>
 
-        {/* ================= USER + AI ================= */}
 
-        <section className="report-grid">
+        {/* ===================================================
+            LIFE AREAS
+        =================================================== */}
 
-          <section className="glass-card">
+        <section className="life-area-grid">
+
+          <LifeArea
+            icon={<FaBriefcase />}
+            title="Career & Success"
+            text={
+              reading?.career?.prediction ||
+              "Career interpretation is not available."
+            }
+          />
+
+          <LifeArea
+            icon={<FaHeart />}
+            title="Relationships"
+            text={
+              reading?.relationships?.prediction ||
+              "Relationship interpretation is not available."
+            }
+          />
+
+          <LifeArea
+            icon={<FaMoneyBillWave />}
+            title="Financial Outlook"
+            text={
+              reading?.finance?.prediction ||
+              reading?.finance?.money_management ||
+              "Financial interpretation is not available."
+            }
+          />
+
+        </section>
+
+
+        {/* ===================================================
+            OVERALL SUMMARY
+        =================================================== */}
+
+        <section className="summary-card">
+
+          <div className="summary-icon">
+            🔮
+          </div>
+
+          <div>
+
+            <p className="summary-label">
+              YOUR OVERALL READING
+            </p>
 
             <h2>
-              <FaUser />
-              User Information
+              AI Interpretation
             </h2>
 
-            <div className="info-row">
-              <span>Name</span>
-              <strong>{profile?.full_name || "Not Provided"}</strong>
-            </div>
-
-            <div className="info-row">
-              <span>Email</span>
-              <strong>{profile?.email || "Not Provided"}</strong>
-            </div>
-
-            <div className="info-row">
-              <span>Age</span>
-              <strong>{profile?.age || "-"}</strong>
-            </div>
-
-            <div className="info-row">
-              <span>Gender</span>
-              <strong>{profile?.gender || "-"}</strong>
-            </div>
-
-            <div className="info-row">
-              <span>Occupation</span>
-              <strong>{profile?.occupation || "-"}</strong>
-            </div>
-
-          </section>
-
-          <section className="glass-card">
-
-            <h2>
-              <FaRobot />
-              AI Confidence
-            </h2>
-
-            <div className="score-circle">
-
-              <h1>
-
-                {analysis?.reading?.confidence ??
-                  Math.round(
-                    (analysis?.features?.analysis_confidence ?? 0) * 100
-                  )}
-                %
-
-              </h1>
-
-              <p>Confidence</p>
-
-            </div>
-
-          </section>
-
-        </section>
-
-        {/* ================= PALM SHAPE ================= */}
-
-        <section className="glass-card">
-
-          <h2>✋ Palm Shape</h2>
-
-          <div className="info-row">
-            <span>Shape</span>
-            <strong>{analysis?.palm_shape?.shape || "Unknown"}</strong>
-          </div>
-
-          <div className="info-row">
-            <span>Aspect Ratio</span>
-            <strong>{analysis?.palm_shape?.ratio || "-"}</strong>
-          </div>
-
-          <div className="info-row">
-            <span>Confidence</span>
-            <strong>
-              {Math.round((analysis?.palm_shape?.confidence || 0) * 100)}%
-            </strong>
-          </div>
-
-        </section>
-
-        
-
-        
-
-        {/* ================= PALM ANALYSIS ================= */}
-
-<section className="glass-card">
-
-  <h2>🖐 Palm Analysis</h2>
-
-  <div className="analysis-grid">
-
-    {/* LIFE LINE */}
-    <div className="analysis-item">
-
-      <h3>❤️ Life Line</h3>
-
-      <p>
-        {analysis?.reading?.palm_analysis?.life_line?.interpretation ||
-          "No interpretation available."}
-      </p>
-
-      <div className="info-row">
-        <span>Detection Confidence</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.life_line?.confidence_percent ?? 0}%
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Length</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.life_line?.length_pixels ?? 0} px
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Angle</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.life_line?.angle_degrees ?? 0}°
-        </strong>
-      </div>
-
-    </div>
-
-
-    {/* HEART LINE */}
-    <div className="analysis-item">
-
-      <h3>💕 Heart Line</h3>
-
-      <p>
-        {analysis?.reading?.palm_analysis?.heart_line?.interpretation ||
-          "No interpretation available."}
-      </p>
-
-      <div className="info-row">
-        <span>Detection Confidence</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.heart_line?.confidence_percent ?? 0}%
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Length</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.heart_line?.length_pixels ?? 0} px
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Angle</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.heart_line?.angle_degrees ?? 0}°
-        </strong>
-      </div>
-
-    </div>
-
-
-    {/* HEAD LINE */}
-    <div className="analysis-item">
-
-      <h3>🧠 Head Line</h3>
-
-      <p>
-        {analysis?.reading?.palm_analysis?.head_line?.interpretation ||
-          "No interpretation available."}
-      </p>
-
-      <div className="info-row">
-        <span>Detection Confidence</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.head_line?.confidence_percent ?? 0}%
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Length</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.head_line?.length_pixels ?? 0} px
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Angle</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.head_line?.angle_degrees ?? 0}°
-        </strong>
-      </div>
-
-    </div>
-
-
-    {/* FATE LINE */}
-    <div className="analysis-item">
-
-      <h3>✨ Fate Line</h3>
-
-      <p>
-        {analysis?.reading?.palm_analysis?.fate_line?.interpretation ||
-          "No interpretation available."}
-      </p>
-
-      <div className="info-row">
-        <span>Detection Confidence</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.fate_line?.confidence_percent ?? 0}%
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Length</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.fate_line?.length_pixels ?? 0} px
-        </strong>
-      </div>
-
-      <div className="info-row">
-        <span>Angle</span>
-        <strong>
-          {analysis?.reading?.palm_analysis?.fate_line?.angle_degrees ?? 0}°
-        </strong>
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-        {/* ================= PERSONALITY ================= */}
-
-        <section className="glass-card">
-
-          <h2>🧠 Personality Profile</h2>
-
-          <div className="info-row">
-            <span>Traits</span>
-            <strong>
-              {Array.isArray(analysis?.reading?.personality?.traits)
-  ? analysis.reading.personality.traits.join(", ")
-  : "-"}
-            </strong>
-          </div>
-
-          <div className="info-row">
-            <span>Strengths</span>
-            <strong>
-              {Array.isArray(analysis?.reading?.personality?.strengths)
-  ? analysis.reading.personality.strengths.join(", ")
-  : "-"}
-            </strong>
-          </div>
-
-          <div className="info-row">
-            <span>Growth Areas</span>
-            <strong>
-              {Array.isArray(analysis?.reading?.personality?.growth_areas)
-  ? analysis.reading.personality.growth_areas.join(", ")
-  : "-"}
-            </strong>
-          </div>
-
-        </section>
-                {/* ================= AI PREDICTIONS ================= */}
-
-        <section className="glass-card">
-
-          <h2>✨ AI Predictions</h2>
-
-          <div className="prediction">
-
-            <h3>💕 Relationships</h3>
-
-            <p>
-              {analysis?.reading?.relationships?.prediction}
-            </p>
-
-            <h3>💼 Career</h3>
-
-            <p>
-              {analysis?.reading?.career?.prediction}
-            </p>
-
-            <h3>💰 Finance</h3>
-
-            <p>
-              {analysis?.reading?.finance?.prediction}
-            </p>
-
-            <h3>❤️ Health</h3>
-
-            <p>
-              {analysis?.reading?.health?.prediction}
+            <p className="summary-text">
+              {reading?.overall_summary ||
+                "Your personalized palm interpretation is being prepared."}
             </p>
 
           </div>
 
         </section>
 
-        {/* ================= CAREER ANALYSIS ================= */}
 
-        <section className="glass-card">
+        {/* ===================================================
+            FORTUNE
+        =================================================== */}
 
-          <h2>💼 Career Intelligence</h2>
+        <section className="fortune-section">
 
-          <div className="info-row">
+          <div className="fortune-header">
 
-            <span>Career Score</span>
+            <div>
+              <p>FUTURE OUTLOOK</p>
+              <h2>Overall Fortune</h2>
+            </div>
 
             <strong>
-
-              {analysis?.reading?.career?.career_score ?? "--"}%
-
+              {fortuneScore}%
             </strong>
 
           </div>
 
-          <div className="info-row">
-
-            <span>Suggested Roles</span>
-
-            <strong>
-
-             {Array.isArray(analysis?.reading?.career?.suitable_roles)
-  ? analysis.reading.career.suitable_roles.join(", ")
-  : "Not Available"}
-
-            </strong>
-
-          </div>
-
-        </section>
-
-        {/* ================= FINANCE ================= */}
-
-        <section className="glass-card">
-
-          <h2>💰 Financial Outlook</h2>
-
-          <p>
-
-            {analysis?.reading?.finance?.money_management}
-
-          </p>
-
-        </section>
-
-        {/* ================= HEALTH ================= */}
-
-        <section className="glass-card">
-
-          <h2>❤️ Wellness Recommendation</h2>
-
-          <p>
-
-            {analysis?.reading?.health?.wellness_tip}
-
-          </p>
-
-        </section>
-
-        {/* ================= AI RECOMMENDATIONS ================= */}
-
-        <section className="glass-card">
-
-          <h2>🎯 AI Recommendations</h2>
-
-          <ul>
-
-            {Array.isArray(analysis?.reading?.recommendations) &&
-  analysis.reading.recommendations.map((item,index)=>(
-
-              <li key={index}>{item}</li>
-
-            ))}
-
-          </ul>
-
-        </section>
-
-        {/* ================= FORTUNE ================= */}
-
-        <section className="glass-card fortune">
-
-          <h2>🌟 Overall Fortune Score</h2>
-
-          <div className="fortune-bar">
+          <div className="fortune-track">
 
             <div
-              className="fortune-fill"
+              className="fortune-progress"
               style={{
-                width: `${analysis?.reading?.fortune_score ?? 0}%`,
+                width: `${fortuneScore}%`,
               }}
             />
 
           </div>
 
-          <h1>
+          <p className="fortune-message">
 
-            {analysis?.reading?.fortune_score ?? 0}%
-
-          </h1>
-
-          <p>
-
-            {analysis?.reading?.fortune_score >= 90
+            {fortuneScore >= 90
               ? "Excellent Future Outlook"
-              : analysis?.reading?.fortune_score >= 80
+              : fortuneScore >= 80
               ? "Very Positive Future"
-              : analysis?.reading?.fortune_score >= 70
+              : fortuneScore >= 70
               ? "Good Opportunities Ahead"
               : "Keep Growing"}
 
@@ -592,66 +711,62 @@ function Report() {
 
         </section>
 
-        {/* ================= SUMMARY ================= */}
 
-        <section className="glass-card">
+        {/* ===================================================
+            DISCLAIMER
+        =================================================== */}
 
-          <h2>📝 AI Overall Summary</h2>
+        <div className="reading-disclaimer">
 
-          <p>
+          <strong>
+            ✦ AI-assisted palmistry
+          </strong>
 
-            {analysis?.reading?.overall_summary}
+          <span>
+            This reading is intended for entertainment,
+            reflection and personal insight. It should not
+            be considered scientific, medical, financial
+            or professional advice.
+          </span>
 
-          </p>
+        </div>
 
-        </section>
 
-        {/* ================= BUTTONS ================= */}
+        {/* ===================================================
+            ACTIONS
+        =================================================== */}
 
-        <div className="button-group">
+        <div className="report-actions">
 
           <button
-            className="download-btn"
+            className="print-btn"
             onClick={() => window.print()}
           >
-            Download PDF Report
+            🖨️ Download / Print Report
           </button>
 
           <button
-            className="new-btn"
-            onClick={() => {
-
-              localStorage.removeItem("analysis_result");
-
-              navigate("/palm-upload");
-
-            }}
+            className="new-reading-btn"
+            onClick={startNewReading}
           >
-            Start New Reading
+            ✨ Start New Reading
           </button>
 
         </div>
 
-        {/* ================= FOOTER ================= */}
 
-        <footer className="report-footer">
+        {/* ===================================================
+            FOOTER
+        =================================================== */}
 
-          <p>
+        <footer className="reading-footer">
 
-            Generated by
-
-            <strong>
-
-              {" "}Palmistry & Tarot Intelligence Platform
-
-            </strong>
-
-          </p>
+          <strong>
+            🔮 Palmistry & Tarot Intelligence Platform
+          </strong>
 
           <span>
-
-            React • FastAPI • OpenCV • MediaPipe • OpenRouter AI • Computer Vision
-
+            React • FastAPI • MediaPipe • OpenCV • YOLOv8 • OpenRouter AI
           </span>
 
         </footer>
@@ -659,9 +774,223 @@ function Report() {
       </main>
 
     </div>
-
   );
-
 }
+
+
+/* =============================================================
+   LINE CARD
+============================================================= */
+
+function LineCard({ icon, title, data }) {
+
+  const confidence =
+    data?.confidence_percent ??
+    (data?.confidence != null
+      ? Math.round(data.confidence * 100)
+      : 0);
+
+  const length =
+    data?.length_pixels ??
+    data?.length ??
+    data?.line_length ??
+    0;
+
+  return (
+    <div className="line-card">
+
+      <div className="line-card-title">
+
+        <span>
+          {icon}
+        </span>
+
+        <strong>
+          {title}
+        </strong>
+
+      </div>
+
+      <p>
+        {data?.interpretation ||
+          "No interpretation available."}
+      </p>
+
+      <div className="line-stats">
+
+        <span>
+          Confidence
+
+          <strong>
+            {confidence}%
+          </strong>
+        </span>
+
+        <span>
+          Length
+
+          <strong>
+            {length}px
+          </strong>
+        </span>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =============================================================
+   INSIGHT BOX
+============================================================= */
+
+function InsightBox({
+  icon,
+  title,
+  value,
+  description,
+}) {
+  return (
+    <div className="insight-box">
+
+      <span className="insight-icon">
+        {icon}
+      </span>
+
+      <div>
+
+        <small>
+          {title}
+        </small>
+
+        <strong>
+          {value}
+        </strong>
+
+        <p>
+          {description}
+        </p>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =============================================================
+   DETAILED LINE
+============================================================= */
+
+function DetailedLine({
+  icon,
+  title,
+  color,
+  data,
+}) {
+
+  const confidence =
+    data?.confidence_percent ??
+    (data?.confidence != null
+      ? Math.round(data.confidence * 100)
+      : 0);
+
+  const length =
+    data?.length_pixels ??
+    data?.length ??
+    data?.line_length ??
+    0;
+
+  const angle =
+    data?.angle_degrees ??
+    data?.angle ??
+    0;
+
+
+  return (
+    <div className={`detailed-line ${color}`}>
+
+      <div className="detailed-line-header">
+
+        <span>
+          {icon}
+        </span>
+
+        <h3>
+          {title}
+        </h3>
+
+      </div>
+
+      <p>
+        {data?.interpretation ||
+          "No interpretation available."}
+      </p>
+
+      <div className="detail-values">
+
+        <div>
+          <span>Detection</span>
+
+          <strong>
+            {confidence}%
+          </strong>
+        </div>
+
+        <div>
+          <span>Length</span>
+
+          <strong>
+            {length}px
+          </strong>
+        </div>
+
+        <div>
+          <span>Angle</span>
+
+          <strong>
+            {angle}°
+          </strong>
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =============================================================
+   LIFE AREA
+============================================================= */
+
+function LifeArea({
+  icon,
+  title,
+  text,
+}) {
+  return (
+    <div className="life-area">
+
+      <div className="life-icon">
+        {icon}
+      </div>
+
+      <div>
+
+        <h3>
+          {title}
+        </h3>
+
+        <p>
+          {text}
+        </p>
+
+      </div>
+
+    </div>
+  );
+}
+
 
 export default Report;

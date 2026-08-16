@@ -1,239 +1,660 @@
+/* ============================================================
+   TAROT REPORT PAGE
+============================================================ */
+
 .tarot-report-page {
+    min-height: 100vh;
 
-    min-height: calc(100vh - 75px);
-
-    background:
-    linear-gradient(
-        rgba(10, 6, 25, 0.88),
-        rgba(10, 6, 25, 0.90)
-    ),
-    url("../assets/background.png") center center/cover no-repeat;
-
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    padding: 50px 20px;
-
-}
-
-
-
-.report-card {
-
-    width: 90%;
-    max-width: 900px;
-
-    background: rgba(255,255,255,0.08);
-
-    backdrop-filter: blur(15px);
-
-    border-radius: 20px;
-
-    padding: 40px;
+    padding: 40px 25px 80px;
 
     color: white;
 
-    box-shadow:
-    0 0 30px rgba(150,100,255,0.25);
+    background:
+        linear-gradient(
+            rgba(7, 3, 20, 0.94),
+            rgba(13, 5, 30, 0.97)
+        ),
+        url("../assets/background.png")
+        center / cover
+        fixed
+        no-repeat;
 
+    overflow-x: hidden;
 }
 
 
+/* ============================================================
+   CONTAINER
+============================================================ */
 
-.report-card h1 {
+.tarot-report-container {
+    width: 100%;
+    max-width: 1050px;
+    margin: auto;
+}
 
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.report-header {
     text-align: center;
-
-    font-size: 36px;
-
-    margin-bottom: 15px;
-
-}
-
-
-
-.report-card h2 {
-
-    text-align: center;
-
-    color: #d8b4ff;
-
-    margin-bottom: 30px;
-
-}
-
-
-
-.card-section {
-
-
-    background: rgba(255,255,255,0.08);
-
-    border-radius: 15px;
-
-    padding: 25px;
-
     margin-bottom: 25px;
-
-
 }
 
+.report-symbol {
+    font-size: 40px;
 
+    margin-bottom: 5px;
 
-.card-section h3 {
-
-    color: #ffd86b;
-
-    font-size: 26px;
-
+    filter:
+        drop-shadow(
+            0 0 15px
+            rgba(255,216,107,0.7)
+        );
 }
 
+.report-header h1 {
+    margin: 0;
 
-
-.card-section h4 {
-
-    color: #d8b4ff;
-
-}
-
-
-
-.card-section p {
-
-    line-height: 1.7;
-
-    color: #f1f1f1;
-
-}
-
-
-
-.ai-section {
-
+    font-size: 34px;
 
     background:
-    rgba(138,43,226,0.15);
+        linear-gradient(
+            90deg,
+            #ffd86b,
+            #e8b4ff,
+            #ffd86b
+        );
 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-    border-left:
+.report-spread {
+    margin-top: 8px;
 
-    5px solid #c084fc;
+    color: #cdb8e8;
 
-
-    padding: 25px;
-
-    border-radius: 15px;
-
-
-    margin-top: 30px;
-
-
+    font-size: 14px;
 }
 
 
+/* ============================================================
+   ACTION BUTTONS
+============================================================ */
 
-.ai-section h2 {
-
-    color: #ffd86b;
-
-}
-
-
-
-.ai-section p {
-
-
-    white-space: pre-line;
-
-    line-height: 1.8;
-
-    color:white;
-
-
-}
-
-
-
-.report-card button {
-
-
-    display:block;
-
-    margin:30px auto 0;
-
-
-    padding:14px 35px;
-
-
-    border:none;
-
-
-    border-radius:30px;
-
-
-    background:
-    linear-gradient(
-        90deg,
-        #8b5cf6,
-        #ec4899
-    );
-
-
-    color:white;
-
-
-    font-size:16px;
-
-
-    cursor:pointer;
-
-
-}
-
-
-
-.report-buttons {
-
+.report-actions {
     display: flex;
 
     justify-content: center;
 
-    gap: 20px;
+    gap: 14px;
 
-    margin-top: 30px;
-
+    margin-bottom: 30px;
 }
 
+.report-action {
+    padding: 11px 25px;
 
-.report-buttons button {
+    border-radius: 25px;
 
-    padding: 12px 25px;
+    color: white;
 
-    border-radius: 10px;
+    font-size: 13px;
 
-    border: none;
+    font-weight: 700;
 
     cursor: pointer;
 
-    font-size: 16px;
-
-    background: linear-gradient(
-        135deg,
-        #7b2cff,
-        #d946ef
-    );
-
-    color: white;
-
     transition: 0.3s;
+}
 
+.report-action.secondary {
+    background:
+        rgba(255,255,255,0.07);
+
+    border:
+        1px solid
+        rgba(216,180,255,0.25);
+}
+
+.report-action.primary {
+    border: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #d946ef
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(168,85,247,0.3);
+}
+
+.report-action:hover {
+    transform:
+        translateY(-3px);
 }
 
 
-.report-buttons button:hover {
+/* ============================================================
+   IMPORTANT
+   ONE COLUMN ONLY
+============================================================ */
 
-    transform: scale(1.05);
+.report-two-column {
 
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 25px;
+
+    width: 100%;
+}
+
+
+/* ============================================================
+   CARD DETAILS PANEL
+============================================================ */
+
+.card-details-panel {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35,25,55,0.92),
+            rgba(24,14,42,0.95)
+        );
+
+    border:
+        1px solid
+        rgba(216,180,255,0.20);
+
+    border-radius: 22px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.35);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+
+/* ============================================================
+   AI INTERPRETATION PANEL
+============================================================ */
+
+.ai-interpretation-panel {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(52,25,78,0.88),
+            rgba(25,13,46,0.95)
+        );
+
+    border:
+        1px solid
+        rgba(192,132,252,0.25);
+
+    border-radius: 22px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.35);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+
+/* ============================================================
+   PANEL TITLE
+============================================================ */
+
+.panel-title {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-bottom: 25px;
+
+    padding-bottom: 15px;
+
+    border-bottom:
+        1px solid
+        rgba(216,180,255,0.15);
+}
+
+.panel-title span {
+    font-size: 24px;
+}
+
+.panel-title h2 {
+
+    margin: 0;
+
+    color: #ffd86b;
+
+    font-size: 21px;
+}
+
+
+/* ============================================================
+   CARD NAME
+============================================================ */
+
+.card-name {
+
+    text-align: center;
+
+    color: #f0cfff;
+
+    font-size: 25px;
+
+    margin:
+        5px 0 25px;
+}
+
+
+/* ============================================================
+   CARD BASIC INFORMATION
+============================================================ */
+
+.card-basic-info {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 25px;
+}
+
+.card-basic-info div {
+
+    padding: 14px 10px;
+
+    text-align: center;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255,255,255,0.045);
+
+    border:
+        1px solid
+        rgba(216,180,255,0.12);
+}
+
+.card-basic-info span {
+
+    display: block;
+
+    color: #9e91b3;
+
+    font-size: 9px;
+
+    margin-bottom: 6px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.6px;
+}
+
+.card-basic-info strong {
+
+    color: #eee4fa;
+
+    font-size: 12px;
+}
+
+
+/* ============================================================
+   DETAIL SECTIONS
+============================================================ */
+
+.detail-section {
+
+    margin-top: 22px;
+
+    padding-top: 18px;
+
+    border-top:
+        1px solid
+        rgba(216,180,255,0.12);
+}
+
+.detail-section h3 {
+
+    margin:
+        0 0 12px;
+
+    color: #d8b4ff;
+
+    font-size: 15px;
+}
+
+.detail-section ul {
+
+    margin: 0;
+
+    padding-left: 20px;
+
+    color: #d0c6dd;
+
+    font-size: 13px;
+
+    line-height: 1.8;
+}
+
+.detail-section li {
+    margin-bottom: 3px;
+}
+
+
+/* ============================================================
+   KEYWORDS
+============================================================ */
+
+.keyword-container {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+}
+
+.keyword {
+
+    padding: 6px 12px;
+
+    border-radius: 20px;
+
+    color: #f3dfff;
+
+    font-size: 10px;
+
+    background:
+        rgba(168,85,247,0.16);
+
+    border:
+        1px solid
+        rgba(192,132,252,0.25);
+}
+
+
+/* ============================================================
+   AI CONTENT
+============================================================ */
+
+.ai-content {
+
+    color: #e6dced;
+
+    font-size: 14px;
+
+    line-height: 1.85;
+}
+
+.ai-content p {
+
+    margin:
+        0 0 18px;
+}
+
+.ai-content h3 {
+
+    color: #ffd86b;
+
+    font-size: 16px;
+
+    margin:
+        24px 0 9px;
+}
+
+.ai-content h3:first-child {
+    margin-top: 0;
+}
+
+
+/* ============================================================
+   AI NOTE
+============================================================ */
+
+.ai-note {
+
+    margin-top: 25px;
+
+    padding: 14px 17px;
+
+    border-radius: 12px;
+
+    color: #bcaecc;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border-left:
+        3px solid
+        #a855f7;
+}
+
+
+/* ============================================================
+   FULL REPORT
+============================================================ */
+
+.full-report-section {
+
+    width: 100%;
+
+    margin-top: 25px;
+
+    padding: 30px;
+
+    box-sizing: border-box;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35,25,55,0.92),
+            rgba(24,14,42,0.95)
+        );
+
+    border:
+        1px solid
+        rgba(216,180,255,0.20);
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 50px
+        rgba(0,0,0,0.3);
+}
+
+
+/* ============================================================
+   FULL REPORT TITLE
+============================================================ */
+
+.full-report-section::before {
+
+    content: "📜  Full Tarot Report";
+
+    display: block;
+
+    color: #ffd86b;
+
+    font-size: 21px;
+
+    font-weight: 700;
+
+    margin-bottom: 10px;
+}
+
+
+/* ============================================================
+   FULL REPORT BUTTON
+============================================================ */
+
+.full-report-button {
+
+    display: inline-flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 4px;
+
+    min-width: 240px;
+
+    padding: 14px 28px;
+
+    border: none;
+
+    border-radius: 30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #a855f7,
+            #d946ef
+        );
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 30px
+        rgba(124,58,237,0.35);
+
+    transition: 0.3s;
+}
+
+.full-report-button span {
+
+    font-size: 9px;
+
+    color: #eadcff;
+
+    font-weight: 500;
+}
+
+.full-report-button:hover {
+
+    transform:
+        translateY(-4px)
+        scale(1.03);
+
+    box-shadow:
+        0 15px 35px
+        rgba(217,70,239,0.45);
+}
+
+
+/* ============================================================
+   HIDE OLD DECORATIVE LINES
+============================================================ */
+
+.full-report-line {
+    display: none;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 900px) {
+
+    .card-basic-info {
+
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .tarot-report-page {
+
+        padding:
+            25px 12px 60px;
+    }
+
+    .report-header h1 {
+
+        font-size: 27px;
+    }
+
+    .report-actions {
+
+        flex-direction: column;
+
+        align-items: center;
+    }
+
+    .report-action {
+
+        width: 220px;
+    }
+
+    .card-details-panel,
+    .ai-interpretation-panel,
+    .full-report-section {
+
+        padding: 20px;
+    }
+
+    .card-basic-info {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .ai-content {
+
+        font-size: 13px;
+    }
 }

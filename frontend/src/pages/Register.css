@@ -1,0 +1,526 @@
+/* =========================================================
+   REGISTER PAGE
+   Palmistry & Tarot Intelligence Platform
+   ========================================================= */
+
+.register-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(130, 70, 255, 0.22),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(0, 220, 255, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #05030b 0%,
+      #0b0615 45%,
+      #120a22 100%
+    );
+
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* Decorative glowing circles */
+
+.register-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.glow-one {
+  width: 300px;
+  height: 300px;
+  background: rgba(125, 60, 255, 0.18);
+  top: -120px;
+  left: -100px;
+}
+
+.glow-two {
+  width: 350px;
+  height: 350px;
+  background: rgba(0, 180, 255, 0.10);
+  bottom: -150px;
+  right: -100px;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.register-container {
+  width: min(1100px, 100%);
+  min-height: 680px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  position: relative;
+  z-index: 2;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+
+  border-radius: 28px;
+
+  overflow: hidden;
+
+  background: rgba(12, 8, 25, 0.72);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.65),
+    0 0 60px rgba(105, 55, 255, 0.10);
+}
+
+
+/* =========================================================
+   LEFT VISUAL
+   ========================================================= */
+
+.register-visual {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  min-height: 680px;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(120, 65, 255, 0.28),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #130b29,
+      #090612
+    );
+}
+
+.register-visual::before {
+  content: "";
+
+  position: absolute;
+  width: 420px;
+  height: 420px;
+
+  border: 1px solid rgba(170, 120, 255, 0.18);
+
+  border-radius: 50%;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.register-visual::after {
+  content: "";
+
+  position: absolute;
+  width: 280px;
+  height: 280px;
+
+  border: 1px solid rgba(120, 210, 255, 0.15);
+
+  border-radius: 50%;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.visual-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 3, 11, 0.10),
+      rgba(5, 3, 11, 0.35)
+    );
+}
+
+.visual-content {
+  position: relative;
+  z-index: 3;
+
+  padding: 70px;
+
+  max-width: 520px;
+}
+
+.brand-symbol {
+  width: 55px;
+  height: 55px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  font-size: 27px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #4f46e5
+    );
+
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.45);
+
+  margin-bottom: 35px;
+}
+
+.visual-content h1 {
+  margin: 0;
+
+  font-size: clamp(38px, 4vw, 58px);
+
+  line-height: 1.05;
+
+  font-weight: 700;
+
+  letter-spacing: -2px;
+
+  color: #ffffff;
+}
+
+.visual-content h1 span {
+  display: block;
+
+  background:
+    linear-gradient(
+      90deg,
+      #a78bfa,
+      #67e8f9
+    );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.visual-content > p {
+  margin-top: 25px;
+
+  color: rgba(235, 230, 250, 0.68);
+
+  font-size: 16px;
+
+  line-height: 1.7;
+}
+
+.visual-features {
+  margin-top: 45px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.visual-features div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.visual-features span {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: rgba(139, 92, 246, 0.13);
+
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.visual-features p {
+  margin: 0;
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   FORM SECTION
+   ========================================================= */
+
+.register-form-section {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 50px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 13, 35, 0.82),
+      rgba(8, 6, 15, 0.92)
+    );
+}
+
+.register-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.register-header {
+  margin-bottom: 35px;
+}
+
+.small-title {
+  font-size: 11px;
+
+  letter-spacing: 3px;
+
+  color: #9f7aea;
+
+  font-weight: 700;
+
+  margin-bottom: 12px;
+}
+
+.register-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 32px;
+
+  font-weight: 700;
+}
+
+.register-header p {
+  margin-top: 10px;
+
+  color: rgba(255, 255, 255, 0.52);
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 13px;
+
+  font-weight: 500;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+
+  height: 50px;
+
+  box-sizing: border-box;
+
+  border-radius: 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+
+  outline: none;
+
+  background: rgba(255, 255, 255, 0.045);
+
+  color: #ffffff;
+
+  padding: 0 15px;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: rgba(139, 92, 246, 0.75);
+
+  background: rgba(139, 92, 246, 0.07);
+
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.10);
+}
+
+.input-group select {
+  cursor: pointer;
+}
+
+.input-group select option {
+  background: #151021;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   BUTTON
+   ========================================================= */
+
+.register-button {
+  width: 100%;
+
+  height: 52px;
+
+  margin-top: 8px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  color: #ffffff;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #6366f1
+    );
+
+  box-shadow:
+    0 10px 30px rgba(99, 102, 241, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.register-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 15px 35px rgba(99, 102, 241, 0.40);
+}
+
+.register-button:active {
+  transform: translateY(0);
+}
+
+.register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   LOGIN LINK
+   ========================================================= */
+
+.login-link {
+  text-align: center;
+
+  margin-top: 25px;
+
+  color: rgba(255, 255, 255, 0.48);
+
+  font-size: 13px;
+}
+
+.login-link a {
+  color: #a78bfa;
+
+  text-decoration: none;
+
+  font-weight: 600;
+}
+
+.login-link a:hover {
+  color: #c4b5fd;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+  .register-container {
+    grid-template-columns: 1fr;
+
+    min-height: auto;
+  }
+
+  .register-visual {
+    display: none;
+  }
+
+  .register-form-section {
+    padding: 45px 30px;
+  }
+
+  .register-page {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 450px) {
+
+  .register-form-section {
+    padding: 35px 20px;
+  }
+
+  .register-header h2 {
+    font-size: 27px;
+  }
+}

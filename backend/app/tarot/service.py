@@ -46,12 +46,46 @@ class TarotService:
         return None
 
     # =========================================================
+    # GET COMPLETE TAROT DECK
+    # =========================================================
+
+    def get_deck(self):
+        """
+        Return the tarot deck for the frontend.
+
+        Only safe information required by the card-selection
+        screen is returned.
+        """
+
+        deck = []
+
+        for card in self.cards:
+
+            deck.append({
+
+                "name": card.get("name"),
+
+                "image": card.get("img"),
+
+                "number": card.get("number"),
+
+                "arcana": card.get("arcana"),
+
+                "suit": card.get("suit")
+
+            })
+
+        return deck
+
+    # =========================================================
     # DRAW RANDOM CARD
     # =========================================================
 
     def draw_random_card(self):
         """
         Draw one random tarot card.
+
+        Kept for backward compatibility.
         """
 
         return random.choice(self.cards)
@@ -63,11 +97,65 @@ class TarotService:
     def draw_multiple_cards(self, count: int):
         """
         Draw multiple unique tarot cards.
+
+        Kept for backward compatibility.
         """
 
         count = min(count, len(self.cards))
 
         return random.sample(self.cards, count)
+
+    # =========================================================
+    # GET USER SELECTED CARDS
+    # =========================================================
+
+    def get_selected_cards(
+        self,
+        card_names,
+        spread
+    ):
+        """
+        Get the exact cards selected by the user.
+
+        IMPORTANT:
+        This method DOES NOT randomly select cards.
+        """
+
+        if not isinstance(card_names, list):
+            return None
+
+        if spread == "single":
+
+            if len(card_names) != 1:
+                return None
+
+        elif spread == "three":
+
+            if len(card_names) != 3:
+                return None
+
+            # Prevent selecting the same card more than once
+
+            if len(set(card_names)) != 3:
+                return None
+
+        else:
+            return None
+
+        selected_cards = []
+
+        for card_name in card_names:
+
+            card = self.get_card(
+                card_name
+            )
+
+            if not card:
+                return None
+
+            selected_cards.append(card)
+
+        return selected_cards
 
     # =========================================================
     # INTERPRET CARD
@@ -78,7 +166,10 @@ class TarotService:
         Convert raw JSON card into readable API response.
         """
 
-        meanings = card.get("meanings", {})
+        meanings = card.get(
+            "meanings",
+            {}
+        )
 
         return {
 
@@ -92,7 +183,10 @@ class TarotService:
 
             "image": card.get("img"),
 
-            "keywords": card.get("keywords", []),
+            "keywords": card.get(
+                "keywords",
+                []
+            ),
 
             "fortune_telling": card.get(
                 "fortune_telling",
@@ -143,9 +237,12 @@ class TarotService:
 
         try:
 
-            response = ask_ai(prompt)
+            response = ask_ai(
+                prompt
+            )
 
             if response:
+
                 return response.strip()
 
         except Exception as e:
@@ -166,26 +263,25 @@ class TarotService:
     # =========================================================
 
     def generate_reading_for_card(self, card):
+
         """
-        Generate a Tarot reading for an already selected card.
+        Generate a reading for an already selected card.
 
-        IMPORTANT:
-        This method does NOT draw a new card.
-
-        It is used when the Report module needs to generate
-        a report from the exact Tarot card the user already
-        received.
+        This does NOT draw another card.
         """
 
         if not card:
             return None
 
-        reading = self.interpret_card(card)
+        reading = self.interpret_card(
+            card
+        )
 
         prompt = f"""
 You are an expert Tarot reader.
 
-Analyze this tarot card and provide a meaningful spiritual interpretation.
+Analyze this tarot card and provide a meaningful,
+positive and insightful interpretation.
 
 Card Information:
 
@@ -198,9 +294,16 @@ Explain:
 - Challenges
 - Emotional guidance
 - Career and life direction
+- Personal growth
 
-Return a positive and detailed reading.
-Do not mention you are an AI.
+IMPORTANT:
+
+- Do not claim supernatural certainty.
+- Do not make guaranteed future predictions.
+- Tarot is for entertainment and self-reflection.
+- Do not mention that you are an AI.
+
+Return a natural and detailed interpretation.
 """
 
         ai_reading = self.generate_ai_reading(
@@ -223,60 +326,79 @@ Do not mention you are an AI.
         }
 
     # =========================================================
-    # SINGLE CARD READING
+    # GENERATE READING FROM USER SELECTED SINGLE CARD
     # =========================================================
 
-    def single_card_reading(self):
+    def selected_single_card_reading(
+        self,
+        card_name
+    ):
         """
-        Generate a Single Card Reading.
-
-        A random card is drawn ONLY here.
-
-        After the card is drawn, the same card is passed
-        to generate_reading_for_card().
+        Generate reading from the exact card selected
+        by the user.
         """
 
-        card = self.draw_random_card()
+        selected = self.get_selected_cards(
+            [card_name],
+            "single"
+        )
+
+        if not selected:
+            return None
 
         return self.generate_reading_for_card(
-            card
+            selected[0]
         )
 
     # =========================================================
-    # THREE CARD READING
+    # GENERATE THREE CARD READING
     # =========================================================
 
-    def three_card_reading(self):
+    def selected_three_card_reading(
+        self,
+        card_names
+    ):
         """
-        Past • Present • Future Reading.
+        Generate Past / Present / Future reading from
+        the exact three cards selected by the user.
         """
 
-        cards = self.draw_multiple_cards(3)
+        selected = self.get_selected_cards(
+            card_names,
+            "three"
+        )
+
+        if not selected:
+            return None
 
         past = self.interpret_card(
-            cards[0]
+            selected[0]
         )
 
         present = self.interpret_card(
-            cards[1]
+            selected[1]
         )
 
         future = self.interpret_card(
-            cards[2]
+            selected[2]
         )
 
         prompt = f"""
 You are an expert Tarot reader.
 
-Generate a Past, Present, Future tarot interpretation.
+Generate a Past, Present, Future tarot interpretation
+using ONLY the three cards supplied below.
 
-Past Card:
+PAST CARD:
+
 {json.dumps(past, indent=2)}
 
-Present Card:
+PRESENT CARD:
+
 {json.dumps(present, indent=2)}
 
-Future Card:
+FUTURE CARD:
+
 {json.dumps(future, indent=2)}
 
 Explain:
@@ -287,8 +409,15 @@ Explain:
 - Personal growth guidance
 - Overall life message
 
-Return a positive and detailed reading.
-Do not mention you are an AI.
+IMPORTANT:
+
+- Do not claim supernatural certainty.
+- Do not make guaranteed future predictions.
+- Tarot is for entertainment and self-reflection.
+- Do not invent cards.
+- Do not mention that you are an AI.
+
+Return a positive, natural and detailed interpretation.
 """
 
         ai_reading = self.generate_ai_reading(
@@ -331,3 +460,33 @@ Do not mention you are an AI.
 
             "ai_reading": ai_reading
         }
+
+    # =========================================================
+    # OLD RANDOM SINGLE READING
+    # =========================================================
+
+    def single_card_reading(self):
+
+        card = self.draw_random_card()
+
+        return self.generate_reading_for_card(
+            card
+        )
+
+    # =========================================================
+    # OLD RANDOM THREE CARD READING
+    # =========================================================
+
+    def three_card_reading(self):
+
+        cards = self.draw_multiple_cards(
+            3
+        )
+
+        return self.selected_three_card_reading(
+            [
+                cards[0]["name"],
+                cards[1]["name"],
+                cards[2]["name"]
+            ]
+        )

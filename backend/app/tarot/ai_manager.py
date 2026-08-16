@@ -75,56 +75,50 @@ def _normalize_score(value, default=0):
     except (ValueError, TypeError):
         return default
 
-
 # ============================================================
 # HELPER — NORMALIZE PALM AI RESULT
 # ============================================================
 
 def _normalize_palm_reading(reading, palm_features):
     """
-    Validate and normalize the AI-generated palm reading.
+    Normalize AI palm reading using actual YOLO line detection data.
 
-    IMPORTANT:
-    Computer-vision measurements ALWAYS come from the
-    actual YOLO output.
-
-    The AI is NOT allowed to modify:
+    CV measurements:
         - confidence_percent
         - length_pixels
         - angle_degrees
         - curvature_degrees
+
+    are ALWAYS taken from YOLO.
+
+    Career and fortune scores are calculated from
+    actual detected line confidence values.
     """
 
     if not isinstance(reading, dict):
         return None
 
-    # --------------------------------------------------------
-    # Get actual YOLO line detection data
-    # --------------------------------------------------------
+    # ========================================================
+    # GET LINE DETECTION DATA
+    # ========================================================
 
-    line_data = palm_features.get(
-        "line_detection",
-        {}
-    )
+    line_data = palm_features.get("line_detection", {})
 
     if not isinstance(line_data, dict):
         line_data = {}
 
-    # --------------------------------------------------------
-    # Get AI palm analysis
-    # --------------------------------------------------------
+    # ========================================================
+    # GET AI PALM ANALYSIS
+    # ========================================================
 
-    palm_analysis = reading.get(
-        "palm_analysis",
-        {}
-    )
+    palm_analysis = reading.get("palm_analysis", {})
 
     if not isinstance(palm_analysis, dict):
         palm_analysis = {}
 
-    # --------------------------------------------------------
-    # FORCE ACTUAL YOLO MEASUREMENTS
-    # --------------------------------------------------------
+    # ========================================================
+    # FORCE REAL YOLO VALUES
+    # ========================================================
 
     for line_name in [
         "life",
@@ -133,10 +127,7 @@ def _normalize_palm_reading(reading, palm_features):
         "fate"
     ]:
 
-        actual = line_data.get(
-            line_name,
-            {}
-        )
+        actual = line_data.get(line_name, {})
 
         if not isinstance(actual, dict):
             actual = {}
@@ -149,9 +140,7 @@ def _normalize_palm_reading(reading, palm_features):
         if not isinstance(ai_line, dict):
             ai_line = {}
 
-        # ----------------------------------------------------
-        # NEVER TRUST AI FOR THESE VALUES
-        # ----------------------------------------------------
+        # REAL YOLO VALUES ONLY
 
         ai_line["confidence_percent"] = actual.get(
             "confidence_percent",
@@ -180,43 +169,93 @@ def _normalize_palm_reading(reading, palm_features):
     reading["palm_analysis"] = palm_analysis
 
     # ========================================================
+    # GET REAL LINE CONFIDENCES
+    # ========================================================
+
+    def get_confidence(line_name):
+
+        line = line_data.get(
+            line_name,
+            {}
+        )
+
+        if not isinstance(line, dict):
+            return 0.0
+
+        try:
+            value = float(
+                line.get(
+                    "confidence_percent",
+                    0
+                )
+            )
+        except (ValueError, TypeError):
+            return 0.0
+
+        return max(
+            0.0,
+            min(
+                100.0,
+                value
+            )
+        )
+
+    life_conf = get_confidence("life")
+    heart_conf = get_confidence("heart")
+    head_conf = get_confidence("head")
+    fate_conf = get_confidence("fate")
+
+    # ========================================================
     # OVERALL CV CONFIDENCE
     # ========================================================
 
-    actual_confidence = palm_features.get(
-        "analysis_confidence",
-        0
+    line_confidences = [
+        life_conf,
+        heart_conf,
+        head_conf,
+        fate_conf
+    ]
+
+    actual_confidence = (
+        sum(line_confidences)
+        / len(line_confidences)
     )
 
-    try:
-
-        actual_confidence = float(
-            actual_confidence
-        )
-
-        # Some versions store confidence as 0-1
-        if actual_confidence <= 1:
-            actual_confidence *= 100
-
-    except (ValueError, TypeError):
-
-        actual_confidence = 0
-
-    actual_confidence = max(
-        0,
-        min(
-            100,
-            actual_confidence
-        )
-    )
-
-    reading["confidence"] = round(
-        actual_confidence,
+    actual_confidence = round(
+        max(
+            0.0,
+            min(
+                100.0,
+                actual_confidence
+            )
+        ),
         1
     )
 
     # ========================================================
     # CAREER SCORE
+    # ========================================================
+
+    career_score = (
+        head_conf * 0.35
+        + life_conf * 0.25
+        + heart_conf * 0.25
+        + fate_conf * 0.15
+    )
+
+    career_score = round(
+        max(
+            0.0,
+            min(
+                100.0,
+                career_score
+            )
+        ),
+        1
+    )
+
+    # ========================================================
+    # SAVE CAREER SCORE
     # ========================================================
 
     career = reading.get(
@@ -227,10 +266,7 @@ def _normalize_palm_reading(reading, palm_features):
     if not isinstance(career, dict):
         career = {}
 
-    career["career_score"] = _normalize_score(
-        career.get("career_score"),
-        default=round(actual_confidence)
-    )
+    career["career_score"] = career_score
 
     reading["career"] = career
 
@@ -238,9 +274,43 @@ def _normalize_palm_reading(reading, palm_features):
     # FORTUNE SCORE
     # ========================================================
 
-    reading["fortune_score"] = _normalize_score(
-        reading.get("fortune_score"),
-        default=round(actual_confidence)
+    fortune_score = (
+        life_conf * 0.30
+        + heart_conf * 0.30
+        + head_conf * 0.25
+        + fate_conf * 0.15
+    )
+
+    fortune_score = round(
+        max(
+            0.0,
+            min(
+                100.0,
+                fortune_score
+            )
+        ),
+        1
+    )
+
+    reading["fortune_score"] = fortune_score
+
+    # ========================================================
+    # FORCE CORRECT OVERALL CONFIDENCE
+    # ========================================================
+
+    reading["confidence"] = actual_confidence
+
+    # ========================================================
+    # CORRECT OVERALL SUMMARY
+    # ========================================================
+
+    reading["overall_summary"] = (
+        "Computer vision detected the major palm lines "
+        f"with an average detection confidence of "
+        f"{actual_confidence}%. "
+        "The AI interpretation combines the detected "
+        "palm characteristics with traditional palmistry "
+        "concepts for entertainment and self-reflection."
     )
 
     # ========================================================
@@ -252,8 +322,26 @@ def _normalize_palm_reading(reading, palm_features):
         "and self-reflection."
     )
 
+    # ========================================================
+    # DEBUG OUTPUT
+    # ========================================================
+
+    print("\n========== PALM SCORE DEBUG ==========")
+    print("Life confidence :", life_conf)
+    print("Heart confidence:", heart_conf)
+    print("Head confidence :", head_conf)
+    print("Fate confidence :", fate_conf)
+    print("Overall CV      :", actual_confidence)
+    print("Career score    :", career_score)
+    print("Fortune score   :", fortune_score)
+    print("======================================\n")
+
     return reading
 
+    
+               
+    
+    
 
 # ============================================================
 # PALM READING
@@ -387,7 +475,7 @@ Return exactly this JSON structure:
     "career": {{
         "prediction": "",
         "suitable_roles": [],
-        "career_score": 0
+        "career_score": null
     }},
 
     "relationships": {{
@@ -409,9 +497,9 @@ Return exactly this JSON structure:
 
     "overall_summary": "",
 
-    "confidence": 0,
+    "confidence": null,
 
-    "fortune_score": 0,
+    "fortune_score": null,
 
     "disclaimer":
         "Palmistry interpretations are for entertainment and self-reflection."

@@ -128,6 +128,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+
+
+
+
+
+
+
+
        
       {/* =====================
             Tarot Result
@@ -161,6 +172,10 @@ function App() {
 
 
       </Routes>
+
+
+
+ 
 
 
     </BrowserRouter>
