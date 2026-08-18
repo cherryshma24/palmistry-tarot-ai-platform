@@ -1,6 +1,6 @@
+
 import os
-import cv2
-from ultralytics import YOLO
+import math
 
 from app.services.ai_manager import generate_palm_reading
 
@@ -20,15 +20,14 @@ MODEL_PATH = os.path.abspath(
     )
 )
 
-# If the model is not found in the above location,
-# you can change MODEL_PATH to your actual best.pt path.
-
+# YOLO model is loaded only when palm analysis is requested.
+# This prevents YOLO/PyTorch from loading during FastAPI startup.
 _model = None
 
 
 def get_model():
     """
-    Load YOLO model only once.
+    Load YOLO model only once and only when required.
     """
 
     global _model
@@ -42,6 +41,11 @@ def get_model():
             )
 
         print(f"Loading palm model: {MODEL_PATH}")
+
+        # Lazy import:
+        # Prevents Ultralytics/PyTorch from being imported
+        # while FastAPI is starting.
+        from ultralytics import YOLO
 
         _model = YOLO(MODEL_PATH)
 
@@ -147,7 +151,9 @@ def analyze_palm_image(image_path):
             continue
 
         palm_lines[line_name]["detected"] = True
+
         palm_lines[line_name]["confidence"] = confidence
+
         palm_lines[line_name]["confidence_percent"] = round(
             confidence * 100,
             1
@@ -161,11 +167,8 @@ def analyze_palm_image(image_path):
             continue
 
         try:
-
             points = keypoints.xy[i].cpu().numpy()
-
         except Exception:
-
             continue
 
         if points is None or len(points) == 0:
@@ -180,7 +183,6 @@ def analyze_palm_image(image_path):
             y = float(point[1])
 
             if x > 0 and y > 0:
-
                 valid_points.append(
                     (x, y)
                 )
@@ -235,8 +237,6 @@ def analyze_palm_image(image_path):
         # ----------------------------------------------------
         # Overall angle
         # ----------------------------------------------------
-
-        import math
 
         dx = end_x - start_x
         dy = end_y - start_y
@@ -378,7 +378,7 @@ def analyze_palm(
     profile=None
 ):
     """
-    Complete pipeline:
+    Complete palm analysis pipeline:
 
     Image
       ↓
@@ -429,10 +429,8 @@ def analyze_palm(
 
     return {
         "success": True,
-
         "image_path": image_path,
-
         "palm_analysis": palm_analysis,
-
         "reading": reading
     }
+
