@@ -34,3 +34,4 @@ pillow
 python-multipart
 requests
 openai
+ultralytics
