@@ -47,7 +47,7 @@ origins = [
     "http://127.0.0.1:5173",
     "http://localhost:5175",
     "http://127.0.0.1:5175",
-    "https://palmistry-tarot-ai-platform.onrender.com",
+    "https://palmistry-tarot-ai-platform-1.onrender.com",
 ]
 
 app.add_middleware(
