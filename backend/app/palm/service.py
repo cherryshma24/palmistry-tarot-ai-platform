@@ -1,13 +1,8 @@
 from app.palm.utils import preprocess_image
 from app.palm.detector import detect_hand_landmarks
 from app.palm.features import extract_palm_features
-from app.services.ai_manager import generate_palm_reading
-from app.services.personality_service import generate_personality_profile
 from app.palm.image_enhancer import enhance_palm_image
 from app.palm.shape_classifier import classify_palm_shape
-
-# NEW: trained YOLO palm-line model
-from app.services.palm_service import analyze_palm_image
 
 
 class PalmAnalysisService:
@@ -36,46 +31,42 @@ class PalmAnalysisService:
         landmarks = detect_hand_landmarks(rgb_image)
 
         # =====================================================
-        # STEP 4 : YOLO PALM LINE DETECTION
+        # STEP 4 : YOLO BYPASS
         # =====================================================
 
-        # Save image temporarily because the YOLO service
-        # works with an image path.
-        import os
-        import tempfile
-        import cv2
+        # YOLO is temporarily disabled for Render testing.
+        # This allows us to check whether the remaining
+        # palm-analysis pipeline works correctly.
 
-        temp_path = None
+        yolo_analysis = {
+            "palm_lines": {
+                "fate": {
+                    "detected": False,
+                    "confidence": 0.0,
+                    "confidence_percent": 0.0
+                },
+                "head": {
+                    "detected": False,
+                    "confidence": 0.0,
+                    "confidence_percent": 0.0
+                },
+                "heart": {
+                    "detected": False,
+                    "confidence": 0.0,
+                    "confidence_percent": 0.0
+                },
+                "life": {
+                    "detected": False,
+                    "confidence": 0.0,
+                    "confidence_percent": 0.0
+                }
+            },
+            "overall_confidence": 0.0
+        }
 
-        try:
-
-            with tempfile.NamedTemporaryFile(
-                suffix=".jpg",
-                delete=False
-            ) as temp_file:
-
-                temp_path = temp_file.name
-
-            # enhanced_image is RGB, convert to BGR for OpenCV
-            bgr_image = cv2.cvtColor(
-                enhanced_image,
-                cv2.COLOR_RGB2BGR
-            )
-
-            cv2.imwrite(
-                temp_path,
-                bgr_image
-            )
-
-            # Run trained YOLO model
-            yolo_analysis = analyze_palm_image(
-                temp_path
-            )
-
-        finally:
-
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
+        print(
+            "YOLO temporarily bypassed for Render testing"
+        )
 
         # =====================================================
         # YOLO LINE DATA
@@ -91,7 +82,9 @@ class PalmAnalysisService:
             0.0
         )
 
-        print("\n========== YOLO PALM LINE RESULTS ==========\n")
+        print(
+            "\n========== YOLO PALM LINE RESULTS ==========\n"
+        )
 
         for name, data in palm_lines.items():
 
@@ -107,12 +100,17 @@ class PalmAnalysisService:
         if landmarks is not None:
 
             print(
-                "Using MediaPipe Hand Detection + YOLO Palm Lines"
+                "Using MediaPipe Hand Detection "
+                "+ Palm Feature Extraction"
             )
+
+            # Extract palm features
 
             features = extract_palm_features(
                 landmarks
             )
+
+            # Classify palm shape
 
             palm_shape = classify_palm_shape(
                 landmarks
@@ -120,35 +118,46 @@ class PalmAnalysisService:
 
             features["palm_shape"] = palm_shape
 
+            # Palm-line information
+
             features["line_detection"] = palm_lines
 
-            features["yolo_line_confidence"] = overall_confidence
+            features["yolo_line_confidence"] = (
+                overall_confidence
+            )
 
-            features["analysis_confidence"] = overall_confidence
+            features["analysis_confidence"] = (
+                overall_confidence
+            )
+
+            # System information
 
             features["analysis_version"] = "3.0"
 
             features["cv_engine"] = (
-                "MediaPipe + OpenCV + YOLOv8 Pose"
+                "MediaPipe + OpenCV"
             )
 
             features["analysis_type"] = (
                 "Palmistry Intelligence"
             )
 
-            features["ai_provider"] = "OpenRouter"
+            features["ai_provider"] = (
+                "OpenRouter"
+            )
+
+            # Detected lines
 
             features["detected_lines"] = [
-    name.title()
-    for name, data in palm_lines.items()
-    if data.get("detected")
-]
+                name.title()
+                for name, data in palm_lines.items()
+                if data.get("detected")
+            ]
 
         else:
 
             print(
-                "MediaPipe hand not detected. "
-                "Using YOLO palm-line analysis."
+                "MediaPipe hand not detected."
             )
 
             features = {
@@ -163,10 +172,11 @@ class PalmAnalysisService:
                 "analysis_confidence":
                     overall_confidence,
 
-                "analysis_version": "3.0",
+                "analysis_version":
+                    "3.0",
 
                 "cv_engine":
-                    "OpenCV + YOLOv8 Pose",
+                    "OpenCV",
 
                 "analysis_type":
                     "Palmistry Intelligence",
@@ -175,11 +185,10 @@ class PalmAnalysisService:
                     "OpenRouter",
 
                 "detected_lines": [
-    name.title()
-    for name, data in palm_lines.items()
-    if data.get("detected")
-]
-
+                    name.title()
+                    for name, data in palm_lines.items()
+                    if data.get("detected")
+                ]
             }
 
             palm_shape = "Unknown"
@@ -203,7 +212,7 @@ class PalmAnalysisService:
         }
 
         # =====================================================
-        # STEP 7 : SEND YOLO FEATURES TO AI
+        # STEP 7 : AI BYPASS
         # =====================================================
 
         print(
@@ -212,23 +221,61 @@ class PalmAnalysisService:
 
         print(features)
 
-        reading = generate_palm_reading(
-            profile,
-            features
+        # -----------------------------------------------------
+        # OpenRouter temporarily bypassed
+        # -----------------------------------------------------
+
+        reading = {
+
+            "message":
+                "AI temporarily bypassed for Render testing.",
+
+            "palm_analysis": {
+
+                "palm_shape":
+                    palm_shape,
+
+                "detected_lines":
+                    features.get(
+                        "detected_lines",
+                        []
+                    ),
+
+                "confidence":
+                    features.get(
+                        "analysis_confidence",
+                        0.0
+                    )
+            },
+
+            "confidence":
+                0
+
+        }
+
+        print(
+            "OpenRouter AI temporarily bypassed "
+            "for Render testing"
         )
 
         # =====================================================
-        # STEP 8 : PERSONALITY PROFILE
+        # STEP 8 : PERSONALITY AI BYPASS
         # =====================================================
 
-        personality = generate_personality_profile(
+        personality = {
 
-            profile=profile,
+            "message":
+                "Personality AI temporarily bypassed "
+                "for Render testing.",
 
-            palm_reading=reading,
+            "type":
+                "General"
 
-            tarot_reading=None
+        }
 
+        print(
+            "Personality AI temporarily bypassed "
+            "for Render testing"
         )
 
         print(
@@ -245,17 +292,19 @@ class PalmAnalysisService:
 
         return {
 
-            "success": True,
+            "success":
+                True,
 
             "system": {
 
-                "version": "3.0",
+                "version":
+                    "3.0",
 
                 "platform":
                     "Palmistry & Tarot Intelligence Platform",
 
                 "cv_engine":
-                    "MediaPipe + OpenCV + YOLOv8 Pose",
+                    "MediaPipe + OpenCV",
 
                 "ai_engine":
                     "OpenRouter",
@@ -272,7 +321,9 @@ class PalmAnalysisService:
                 "Palm analysis completed successfully.",
 
             "total_landmarks":
-                len(landmarks) if landmarks else 0,
+                len(landmarks)
+                if landmarks
+                else 0,
 
             "features":
                 features,
@@ -290,6 +341,8 @@ class PalmAnalysisService:
                 personality,
 
             "landmarks":
-                landmarks if landmarks else []
+                landmarks
+                if landmarks
+                else []
 
         }
