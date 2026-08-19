@@ -277,13 +277,15 @@ def analyze_palm_image(image_path):
     try:
 
         print("Running YOLO inference on CPU...")
-        print("Image size: 320")
+        print("Image size: 256")
         print("Confidence threshold: 0.05")
 
         # ----------------------------------------------------
         # Disable gradients completely
         # ----------------------------------------------------
+        import time
 
+        start_time = time.time() 
         with torch.inference_mode():
 
             results = model.predict(
@@ -297,7 +299,7 @@ def analyze_palm_image(image_path):
                 # 320 is enough for the palm-line task and
                 # reduces CPU/RAM usage compared with 640.
                 #
-                imgsz=320,
+                imgsz=256,
 
                 # ------------------------------------------------
                 # CONFIDENCE
@@ -341,6 +343,8 @@ def analyze_palm_image(image_path):
 
                 augment=False
             )
+            elapsed = time.time() - start_time
+            print(f"YOLO inference time: {elapsed:.2f} seconds")
 
         print("✅ YOLO inference completed.")
 
@@ -854,6 +858,7 @@ def analyze_palm(
     # ========================================================
     # FINAL RESPONSE
     # ========================================================
+
 
     return {
         "success": True,
