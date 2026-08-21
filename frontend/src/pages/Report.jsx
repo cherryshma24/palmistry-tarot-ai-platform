@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   FaHome,
   FaHandPaper,
@@ -8,15 +7,13 @@ import {
   FaChartLine,
   FaUserCircle,
   FaSignOutAlt,
-  FaRobot,
-  FaUser,
+  FaCheckCircle,
   FaHeart,
   FaBrain,
   FaCompass,
   FaBriefcase,
   FaMoneyBillWave,
   FaArrowUp,
-  FaCheckCircle,
 } from "react-icons/fa";
 
 import "./Report.css";
@@ -54,113 +51,121 @@ function Report() {
     }
   }, []);
 
- 
+  const reading = analysis?.reading;
 
-const reading = analysis?.reading;
+  // ============================================================
+  // ACTUAL PALM LINE DETECTION DATA
+  // ============================================================
 
-// Use actual CV/YOLO line detection first.
-// reading.palm_analysis currently contains fallback AI values (0),
-// while analysis.line_detection contains the real detected values.
-const lineDetection = analysis?.line_detection || {};
+  const lineDetection = analysis?.line_detection || {};
 
-const palmAnalysis = {
-  heart_line: {
-    ...(reading?.palm_analysis?.heart_line || {}),
-    ...(lineDetection?.heart || {}),
-  },
+  const palmAnalysis = {
+    heart_line: {
+      ...(reading?.palm_analysis?.heart_line || {}),
+      ...(lineDetection?.heart || {}),
+    },
 
-  life_line: {
-    ...(reading?.palm_analysis?.life_line || {}),
-    ...(lineDetection?.life || {}),
-  },
+    life_line: {
+      ...(reading?.palm_analysis?.life_line || {}),
+      ...(lineDetection?.life || {}),
+    },
 
-  head_line: {
-    ...(reading?.palm_analysis?.head_line || {}),
-    ...(lineDetection?.head || {}),
-  },
+    head_line: {
+      ...(reading?.palm_analysis?.head_line || {}),
+      ...(lineDetection?.head || {}),
+    },
 
-  fate_line: {
-    ...(reading?.palm_analysis?.fate_line || {}),
-    ...(lineDetection?.fate || {}),
-  },
-};
-
-// Calculate confidence from actual detected palm lines
-const lineConfidences = [
-  lineDetection?.heart?.confidence_percent,
-  lineDetection?.life?.confidence_percent,
-  lineDetection?.head?.confidence_percent,
-  lineDetection?.fate?.confidence_percent,
-].filter(
-  (value) => typeof value === "number"
-);
-
-const calculatedConfidence =
-  lineConfidences.length > 0
-    ? Math.round(
-        lineConfidences.reduce(
-          (sum, value) => sum + value,
-          0
-        ) / lineConfidences.length
-      )
-    : 0;
-
-const confidence =
-  reading?.confidence > 0
-    ? reading.confidence
-    : calculatedConfidence;
-
-const fortuneScore =
-  reading?.fortune_score > 0
-    ? reading.fortune_score
-    : calculatedConfidence;
-
-
-// ============================================================
-// PALM LINE DATA
-// ============================================================
-
-const getLine = (lineName) => {
-
-  const backendNameMap = {
-    heart_line: "heart",
-    life_line: "life",
-    head_line: "head",
-    fate_line: "fate",
+    fate_line: {
+      ...(reading?.palm_analysis?.fate_line || {}),
+      ...(lineDetection?.fate || {}),
+    },
   };
 
-  const backendName =
-    backendNameMap[lineName] || lineName;
+  // ============================================================
+  // CALCULATE ACTUAL PALM CONFIDENCE
+  // ============================================================
 
-  const detectedLine =
-    analysis?.line_detection?.[backendName] || {};
+  const lineConfidences = [
+    lineDetection?.heart?.confidence_percent,
+    lineDetection?.life?.confidence_percent,
+    lineDetection?.head?.confidence_percent,
+    lineDetection?.fate?.confidence_percent,
+  ].filter((value) => typeof value === "number");
 
-  const readingLine =
-    reading?.palm_analysis?.[lineName] || {};
+  const calculatedConfidence =
+    lineConfidences.length > 0
+      ? Number(
+          (
+            lineConfidences.reduce(
+              (sum, value) => sum + value,
+              0
+            ) / lineConfidences.length
+          ).toFixed(1)
+        )
+      : 0;
 
-  // Combine BOTH:
-  // - interpretation comes from AI reading
-  // - confidence/length/angle come from CV
-  return {
-    ...readingLine,
-    ...detectedLine,
+  // ============================================================
+  // IMPORTANT FIX
+  //
+  // Do NOT use reading.confidence or reading.fortune_score
+  // because those may contain incorrect AI-generated values.
+  //
+  // Use the actual CV/YOLO palm-line detection confidence.
+  // ============================================================
 
-    interpretation:
-      readingLine?.interpretation ||
-      detectedLine?.interpretation ||
-      "Interpretation not available.",
+  const confidence = calculatedConfidence;
+
+  const fortuneScore = calculatedConfidence;
+
+  // ============================================================
+  // PALM LINE DATA
+  // ============================================================
+
+  const getLine = (lineName) => {
+    const backendNameMap = {
+      heart_line: "heart",
+      life_line: "life",
+      head_line: "head",
+      fate_line: "fate",
+    };
+
+    const backendName =
+      backendNameMap[lineName] || lineName;
+
+    const detectedLine =
+      analysis?.line_detection?.[backendName] || {};
+
+    const readingLine =
+      reading?.palm_analysis?.[lineName] || {};
+
+    return {
+      ...readingLine,
+      ...detectedLine,
+
+      interpretation:
+        readingLine?.interpretation ||
+        detectedLine?.interpretation ||
+        "Interpretation not available.",
+    };
   };
-};
 
+  // ============================================================
+  // LOGOUT
+  // ============================================================
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     navigate("/");
   };
 
+  // ============================================================
+  // NEW READING
+  // ============================================================
+
   const startNewReading = () => {
     localStorage.removeItem("analysis_result");
     localStorage.removeItem("palm_image");
+
     navigate("/palm-upload");
   };
 
@@ -237,6 +242,7 @@ const getLine = (lineName) => {
           </div>
 
           <div>
+
             <p className="eyebrow">
               VEDIC & AI PALMISTRY ANALYSIS
             </p>
@@ -249,10 +255,10 @@ const getLine = (lineName) => {
               AI-powered interpretation of your palm structure,
               major lines, personality and life insights.
             </p>
+
           </div>
 
         </header>
-
 
         {/* ===================================================
             REPORT META
@@ -262,6 +268,7 @@ const getLine = (lineName) => {
 
           <div>
             <span>Prepared For</span>
+
             <strong>
               {profile?.full_name || "Palm Reader"}
             </strong>
@@ -269,6 +276,7 @@ const getLine = (lineName) => {
 
           <div>
             <span>Analysis Engine</span>
+
             <strong>
               MediaPipe + YOLOv8 + OpenRouter
             </strong>
@@ -276,13 +284,13 @@ const getLine = (lineName) => {
 
           <div>
             <span>AI Confidence</span>
+
             <strong className="gold-text">
-              {confidence}%
+              {confidence.toFixed(1)}%
             </strong>
           </div>
 
         </section>
-
 
         {/* ===================================================
             PALM READING HERO
@@ -325,7 +333,6 @@ const getLine = (lineName) => {
 
           </div>
 
-
           {/* CENTER PALM */}
 
           <div className="palm-center">
@@ -354,14 +361,16 @@ const getLine = (lineName) => {
             </div>
 
             <div className="palm-status">
+
               <FaCheckCircle />
+
               <span>
                 {analysis?.total_landmarks || 21} landmarks detected
               </span>
+
             </div>
 
           </div>
-
 
           {/* RIGHT INFORMATION */}
 
@@ -375,7 +384,9 @@ const getLine = (lineName) => {
             <InsightBox
               icon="🌟"
               title="Palm Shape"
-              value={analysis?.palm_shape?.shape || "Unknown"}
+              value={
+                analysis?.palm_shape?.shape || "Unknown"
+              }
               description={
                 analysis?.palm_shape?.ratio
                   ? `Aspect ratio: ${analysis.palm_shape.ratio}`
@@ -396,6 +407,12 @@ const getLine = (lineName) => {
               description="Based on extracted palm characteristics."
             />
 
+            {/* =================================================
+                CAREER
+                LEFT UNCHANGED
+                This remains the AI career score.
+            ================================================= */}
+
             <InsightBox
               icon="💼"
               title="Career"
@@ -405,7 +422,9 @@ const getLine = (lineName) => {
                   : "Analyzed"
               }
               description={
-                Array.isArray(reading?.career?.suitable_roles)
+                Array.isArray(
+                  reading?.career?.suitable_roles
+                )
                   ? reading.career.suitable_roles
                       .slice(0, 2)
                       .join(" • ")
@@ -413,10 +432,15 @@ const getLine = (lineName) => {
               }
             />
 
+            {/* =================================================
+                FORTUNE
+                NOW USES ACTUAL PALM CONFIDENCE
+            ================================================= */}
+
             <InsightBox
               icon="💫"
               title="Fortune"
-              value={`${fortuneScore}%`}
+              value={`${fortuneScore.toFixed(1)}%`}
               description={
                 fortuneScore >= 90
                   ? "Excellent future outlook"
@@ -431,7 +455,6 @@ const getLine = (lineName) => {
           </div>
 
         </section>
-
 
         {/* ===================================================
             PALM LINE DETAILS
@@ -484,7 +507,6 @@ const getLine = (lineName) => {
 
         </section>
 
-
         {/* ===================================================
             PERSONALITY
         =================================================== */}
@@ -492,12 +514,14 @@ const getLine = (lineName) => {
         <section className="report-section">
 
           <div className="section-heading">
+
             <span>✦</span>
 
             <div>
               <p>PERSONALITY INSIGHT</p>
               <h2>Your Character Profile</h2>
             </div>
+
           </div>
 
           <div className="personality-grid">
@@ -512,8 +536,11 @@ const getLine = (lineName) => {
 
               <div className="tag-container">
 
-                {Array.isArray(reading?.personality?.traits) &&
+                {Array.isArray(
+                  reading?.personality?.traits
+                ) &&
                 reading.personality.traits.length > 0 ? (
+
                   reading.personality.traits.map(
                     (trait, index) => (
                       <span key={index}>
@@ -521,14 +548,16 @@ const getLine = (lineName) => {
                       </span>
                     )
                   )
+
                 ) : (
+
                   <span>Not Available</span>
+
                 )}
 
               </div>
 
             </div>
-
 
             <div className="personality-card">
 
@@ -543,6 +572,7 @@ const getLine = (lineName) => {
                 {Array.isArray(
                   reading?.personality?.strengths
                 ) ? (
+
                   reading.personality.strengths.map(
                     (item, index) => (
                       <li key={index}>
@@ -551,17 +581,19 @@ const getLine = (lineName) => {
                       </li>
                     )
                   )
+
                 ) : (
+
                   <li>
                     <FaCheckCircle />
                     Not Available
                   </li>
+
                 )}
 
               </ul>
 
             </div>
-
 
             <div className="personality-card">
 
@@ -576,6 +608,7 @@ const getLine = (lineName) => {
                 {Array.isArray(
                   reading?.personality?.growth_areas
                 ) ? (
+
                   reading.personality.growth_areas.map(
                     (item, index) => (
                       <li key={index}>
@@ -584,11 +617,14 @@ const getLine = (lineName) => {
                       </li>
                     )
                   )
+
                 ) : (
+
                   <li>
                     <FaArrowUp />
                     Not Available
                   </li>
+
                 )}
 
               </ul>
@@ -598,7 +634,6 @@ const getLine = (lineName) => {
           </div>
 
         </section>
-
 
         {/* ===================================================
             LIFE AREAS
@@ -636,7 +671,6 @@ const getLine = (lineName) => {
 
         </section>
 
-
         {/* ===================================================
             OVERALL SUMMARY
         =================================================== */}
@@ -666,7 +700,6 @@ const getLine = (lineName) => {
 
         </section>
 
-
         {/* ===================================================
             FORTUNE
         =================================================== */}
@@ -676,12 +709,15 @@ const getLine = (lineName) => {
           <div className="fortune-header">
 
             <div>
+
               <p>FUTURE OUTLOOK</p>
+
               <h2>Overall Fortune</h2>
+
             </div>
 
             <strong>
-              {fortuneScore}%
+              {fortuneScore.toFixed(1)}%
             </strong>
 
           </div>
@@ -711,7 +747,6 @@ const getLine = (lineName) => {
 
         </section>
 
-
         {/* ===================================================
             DISCLAIMER
         =================================================== */}
@@ -730,7 +765,6 @@ const getLine = (lineName) => {
           </span>
 
         </div>
-
 
         {/* ===================================================
             ACTIONS
@@ -754,7 +788,6 @@ const getLine = (lineName) => {
 
         </div>
 
-
         {/* ===================================================
             FOOTER
         =================================================== */}
@@ -777,7 +810,6 @@ const getLine = (lineName) => {
   );
 }
 
-
 /* =============================================================
    LINE CARD
 ============================================================= */
@@ -797,6 +829,7 @@ function LineCard({ icon, title, data }) {
     0;
 
   return (
+
     <div className="line-card">
 
       <div className="line-card-title">
@@ -850,7 +883,9 @@ function InsightBox({
   value,
   description,
 }) {
+
   return (
+
     <div className="insight-box">
 
       <span className="insight-icon">
@@ -876,7 +911,6 @@ function InsightBox({
     </div>
   );
 }
-
 
 /* =============================================================
    DETAILED LINE
@@ -906,8 +940,8 @@ function DetailedLine({
     data?.angle ??
     0;
 
-
   return (
+
     <div className={`detailed-line ${color}`}>
 
       <div className="detailed-line-header">
@@ -930,27 +964,33 @@ function DetailedLine({
       <div className="detail-values">
 
         <div>
+
           <span>Detection</span>
 
           <strong>
             {confidence}%
           </strong>
+
         </div>
 
         <div>
+
           <span>Length</span>
 
           <strong>
             {length}px
           </strong>
+
         </div>
 
         <div>
+
           <span>Angle</span>
 
           <strong>
             {angle}°
           </strong>
+
         </div>
 
       </div>
@@ -958,7 +998,6 @@ function DetailedLine({
     </div>
   );
 }
-
 
 /* =============================================================
    LIFE AREA
@@ -969,7 +1008,9 @@ function LifeArea({
   title,
   text,
 }) {
+
   return (
+
     <div className="life-area">
 
       <div className="life-icon">
@@ -991,6 +1032,5 @@ function LifeArea({
     </div>
   );
 }
-
 
 export default Report;
