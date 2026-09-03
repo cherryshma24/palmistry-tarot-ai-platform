@@ -1,20 +1,19 @@
+
 import os
 import math
 import gc
-
-from app.services.ai_manager import generate_palm_reading
-
+import time
 
 # ============================================================
 # RENDER / CPU OPTIMIZATION
 # ============================================================
 
-# Keep PyTorch from creating too many CPU threads.
-# This is important on small Render instances.
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
+from app.services.ai_manager import generate_palm_reading
 
 
 # ============================================================
@@ -28,7 +27,7 @@ MODEL_PATH = os.path.abspath(
         "..",
         "models",
         "palm_pose",
-        "best.pt"
+        "best.pt",
     )
 )
 
@@ -37,14 +36,6 @@ MODEL_PATH = os.path.abspath(
 # GLOBAL MODEL
 # ============================================================
 
-# YOLO is loaded only when palm analysis is requested.
-#
-# IMPORTANT:
-# Do NOT load YOLO during FastAPI startup.
-# Do NOT reload YOLO for every request.
-#
-# Keeping one model instance greatly reduces memory usage
-# and avoids repeated PyTorch initialization.
 _model = None
 
 
@@ -53,37 +44,25 @@ _model = None
 # ============================================================
 
 def get_model():
-    """
-    Load the YOLO palm model once.
-
-    Optimized for:
-        - Render free/low-resource CPU
-        - FastAPI
-        - CPU-only inference
-        - Low memory usage
-
-    The model is NOT loaded during application startup.
-    """
 
     global _model
-
-    # --------------------------------------------------------
-    # Return existing model
-    # --------------------------------------------------------
 
     if _model is not None:
         return _model
 
-    # --------------------------------------------------------
-    # Verify model exists
-    # --------------------------------------------------------
-
     if not os.path.isfile(MODEL_PATH):
+
         raise FileNotFoundError(
-            f"Palm YOLO model not found:\n"
-            f"{MODEL_PATH}\n\n"
-            "Make sure best.pt exists at:\n"
-            "backend/models/palm_pose/best.pt"
+            f"""
+Palm YOLO model not found.
+
+Expected location:
+{MODEL_PATH}
+
+Make sure this file exists:
+
+backend/models/palm_pose/best.pt
+"""
         )
 
     print()
@@ -92,14 +71,8 @@ def get_model():
     print("========================================")
     print(f"Model path: {MODEL_PATH}")
 
-    # --------------------------------------------------------
-    # Import PyTorch only when needed
-    # --------------------------------------------------------
-
     import torch
 
-    # Limit PyTorch CPU threads.
-    # This prevents excessive CPU/memory usage on Render.
     try:
         torch.set_num_threads(1)
     except Exception:
@@ -110,48 +83,45 @@ def get_model():
     except Exception:
         pass
 
-    # --------------------------------------------------------
-    # Lazy import Ultralytics
-    # --------------------------------------------------------
-
     from ultralytics import YOLO
 
     try:
 
-        # ----------------------------------------------------
-        # Load model
-        # ----------------------------------------------------
-
         model = YOLO(MODEL_PATH)
-
-        # ----------------------------------------------------
-        # CPU-only mode
-        # ----------------------------------------------------
 
         try:
             model.to("cpu")
         except Exception:
             pass
 
-        # ----------------------------------------------------
-        # Evaluation mode
-        # ----------------------------------------------------
-
         try:
             model.model.eval()
         except Exception:
             pass
 
-        # ----------------------------------------------------
-        # Store globally
-        # ----------------------------------------------------
-
         _model = model
 
         print("✅ Palm YOLO model loaded successfully.")
         print("✅ Device: CPU")
-        print("========================================")
+
+        # ====================================================
+        # IMPORTANT: PRINT MODEL CLASSES
+        # ====================================================
+
         print()
+        print("🔥 MODEL CLASS NAMES")
+        print("----------------------------------------")
+        print(model.names)
+        print("----------------------------------------")
+
+        print(
+            "Number of classes:",
+            len(model.names)
+            if model.names is not None
+            else "UNKNOWN"
+        )
+
+        print("========================================")
 
         return _model
 
@@ -160,7 +130,8 @@ def get_model():
         print()
         print("❌ FAILED TO LOAD PALM YOLO MODEL")
         print("----------------------------------------")
-        print(str(e))
+        print(f"ERROR TYPE: {type(e).__name__}")
+        print(f"ERROR MESSAGE: {e}")
         print("----------------------------------------")
 
         _model = None
@@ -171,38 +142,114 @@ def get_model():
 
 
 # ============================================================
+# NORMALIZE MODEL CLASS NAME
+# ============================================================
+
+def normalize_class_name(name):
+
+    if name is None:
+        return ""
+
+    name = str(name).strip().lower()
+
+    # Remove spaces / hyphens
+    name = name.replace("-", "_")
+    name = name.replace(" ", "_")
+
+    return name
+
+
+# ============================================================
+# MAP YOLO CLASS TO PALM LINE
+# ============================================================
+
+def map_class_to_line(class_id, model_names):
+
+    """
+    Uses the actual class names stored inside best.pt.
+
+    Supported names:
+        fate
+        fate_line
+        head
+        head_line
+        heart
+        heart_line
+        life
+        life_line
+
+    Falls back to the original ID mapping only if the model
+    class name cannot be determined.
+    """
+
+    try:
+
+        if isinstance(model_names, dict):
+
+            raw_name = model_names.get(
+                class_id,
+                ""
+            )
+
+        else:
+
+            raw_name = model_names[class_id]
+
+        name = normalize_class_name(raw_name)
+
+        print(
+            f"YOLO class ID {class_id} -> "
+            f"model name '{name}'"
+        )
+
+        if "fate" in name:
+            return "fate"
+
+        if "heart" in name:
+            return "heart"
+
+        if "head" in name:
+            return "head"
+
+        if "life" in name:
+            return "life"
+
+    except Exception as e:
+
+        print(
+            f"⚠️ Could not map class name: {e}"
+        )
+
+    # --------------------------------------------------------
+    # FALLBACK
+    # --------------------------------------------------------
+
+    fallback = {
+        0: "fate",
+        1: "head",
+        2: "heart",
+        3: "life",
+    }
+
+    return fallback.get(
+        class_id
+    )
+
+
+# ============================================================
 # PALM LINE ANALYSIS
 # ============================================================
 
 def analyze_palm_image(image_path):
+
     """
     Run YOLO palm-line detection.
-
-    Extracts:
-
-        - confidence
-        - keypoints
-        - line length
-        - start point
-        - end point
-        - angle
-        - average curvature
-
-    Render optimizations:
-
-        - CPU-only
-        - 320px inference size
-        - inference_mode()
-        - one YOLO model instance
-        - one PyTorch CPU thread
-        - limited detections
-        - explicit garbage collection
     """
 
     import torch
 
     # --------------------------------------------------------
-    # Configure PyTorch CPU
+    # Configure CPU
     # --------------------------------------------------------
 
     try:
@@ -220,8 +267,13 @@ def analyze_palm_image(image_path):
     # --------------------------------------------------------
 
     if not os.path.isfile(image_path):
+
         raise FileNotFoundError(
-            f"Palm image not found:\n{image_path}"
+            f"""
+Palm image not found:
+
+{image_path}
+"""
         )
 
     print()
@@ -236,26 +288,17 @@ def analyze_palm_image(image_path):
 
     model = get_model()
 
-    # ========================================================
-    # CLASS NAMES
-    # ========================================================
-
-    class_names = {
-        0: "fate",
-        1: "head",
-        2: "heart",
-        3: "life"
-    }
+    print()
+    print("🔥 MODEL CLASS NAMES:")
+    print(model.names)
 
     # ========================================================
     # INITIALIZE PALM LINES
     # ========================================================
 
-    palm_lines = {}
+    palm_lines = {
 
-    for name in class_names.values():
-
-        palm_lines[name] = {
+        "fate": {
             "detected": False,
             "confidence": 0.0,
             "confidence_percent": 0.0,
@@ -264,8 +307,45 @@ def analyze_palm_image(image_path):
             "end_point": None,
             "angle_degrees": 0.0,
             "average_curvature_degrees": 0.0,
-            "keypoint_count": 0
-        }
+            "keypoint_count": 0,
+        },
+
+        "head": {
+            "detected": False,
+            "confidence": 0.0,
+            "confidence_percent": 0.0,
+            "length_pixels": 0.0,
+            "start_point": None,
+            "end_point": None,
+            "angle_degrees": 0.0,
+            "average_curvature_degrees": 0.0,
+            "keypoint_count": 0,
+        },
+
+        "heart": {
+            "detected": False,
+            "confidence": 0.0,
+            "confidence_percent": 0.0,
+            "length_pixels": 0.0,
+            "start_point": None,
+            "end_point": None,
+            "angle_degrees": 0.0,
+            "average_curvature_degrees": 0.0,
+            "keypoint_count": 0,
+        },
+
+        "life": {
+            "detected": False,
+            "confidence": 0.0,
+            "confidence_percent": 0.0,
+            "length_pixels": 0.0,
+            "start_point": None,
+            "end_point": None,
+            "angle_degrees": 0.0,
+            "average_curvature_degrees": 0.0,
+            "keypoint_count": 0,
+        },
+    }
 
     results = None
     result = None
@@ -276,80 +356,67 @@ def analyze_palm_image(image_path):
 
     try:
 
+        print()
+        print("========== YOLO INFERENCE ==========")
         print("Running YOLO inference on CPU...")
-        print("Image size: 256")
-        print("Confidence threshold: 0.05")
 
         # ----------------------------------------------------
-        # Disable gradients completely
+        # IMPORTANT CHANGES
+        #
+        # Palm lines are very thin.
+        #
+        # Previous:
+        #   imgsz = 640
+        #   conf = 0.05
+        #
+        # Now:
+        #   imgsz = 1024
+        #   conf = 0.001
+        #
+        # This allows us to inspect very weak detections.
         # ----------------------------------------------------
-        import time
 
-        start_time = time.time() 
+        print("Image size: 1024")
+        print("Confidence threshold: 0.001")
+
+        start_time = time.time()
+
         with torch.inference_mode():
 
             results = model.predict(
 
                 source=image_path,
 
-                # ------------------------------------------------
-                # LOW-MEMORY IMAGE SIZE
-                # ------------------------------------------------
-                #
-                # 320 is enough for the palm-line task and
-                # reduces CPU/RAM usage compared with 640.
-                #
-                imgsz=256,
+                imgsz=1024,
 
-                # ------------------------------------------------
-                # CONFIDENCE
-                # ------------------------------------------------
+                conf=0.001,
 
-                conf=0.05,
-
-                # ------------------------------------------------
-                # CPU ONLY
-                # ------------------------------------------------
+                iou=0.5,
 
                 device="cpu",
 
-                # ------------------------------------------------
-                # DO NOT USE HALF PRECISION ON CPU
-                # ------------------------------------------------
-
                 half=False,
-
-                # ------------------------------------------------
-                # NO VERBOSE OUTPUT
-                # ------------------------------------------------
 
                 verbose=False,
 
-                # ------------------------------------------------
-                # LIMIT DETECTIONS
-                # ------------------------------------------------
-
-                max_det=10,
-
-                # ------------------------------------------------
-                # Single image
-                # ------------------------------------------------
+                max_det=20,
 
                 batch=1,
 
-                # ------------------------------------------------
-                # Avoid unnecessary augmentation
-                # ------------------------------------------------
+                augment=False,
 
-                augment=False
             )
-            elapsed = time.time() - start_time
-            print(f"YOLO inference time: {elapsed:.2f} seconds")
+
+        elapsed = time.time() - start_time
+
+        print(
+            f"YOLO inference time: {elapsed:.2f} seconds"
+        )
 
         print("✅ YOLO inference completed.")
 
         # ====================================================
-        # VALIDATE RESULT
+        # VALIDATE RESULTS
         # ====================================================
 
         if not results:
@@ -360,23 +427,125 @@ def analyze_palm_image(image_path):
 
         result = results[0]
 
-        # ====================================================
-        # CHECK BOXES
-        # ====================================================
-
         boxes = result.boxes
+
+        detection_count = (
+            len(boxes)
+            if boxes is not None
+            else 0
+        )
+
+        print()
+        print(
+            f"🔥 NUMBER OF DETECTIONS: "
+            f"{detection_count}"
+        )
+
+        # ====================================================
+        # NO DETECTIONS
+        # ====================================================
 
         if (
             boxes is None
             or len(boxes) == 0
         ):
 
-            print("⚠️ No palm lines detected.")
+            print()
+            print(
+                "⚠️ YOLO FOUND NO DETECTIONS "
+                "EVEN AT CONFIDENCE 0.001"
+            )
+
+            print()
+            print(
+                "This indicates one of the following:"
+            )
+
+            print(
+                "1. best.pt is not trained correctly "
+                "for this palm image."
+            )
+
+            print(
+                "2. The uploaded palm image is very "
+                "different from the training images."
+            )
+
+            print(
+                "3. The model is a different model "
+                "than expected."
+            )
+
+            print(
+                "4. The palm lines are not detectable "
+                "by this YOLO model."
+            )
 
             return {
                 "palm_lines": palm_lines,
-                "overall_confidence": 0.0
+                "overall_confidence": 0.0,
             }
+
+        # ====================================================
+        # PRINT ALL RAW DETECTIONS
+        # ====================================================
+
+        print()
+        print("🔥 RAW YOLO DETECTIONS")
+        print("----------------------------------------")
+
+        for i in range(len(boxes)):
+
+            try:
+
+                class_id = int(
+                    boxes.cls[i].item()
+                )
+
+            except Exception:
+
+                class_id = -1
+
+            try:
+
+                confidence = float(
+                    boxes.conf[i].item()
+                )
+
+            except Exception:
+
+                confidence = 0.0
+
+            try:
+
+                if isinstance(
+                    model.names,
+                    dict
+                ):
+
+                    model_class = model.names.get(
+                        class_id,
+                        "unknown"
+                    )
+
+                else:
+
+                    model_class = model.names[
+                        class_id
+                    ]
+
+            except Exception:
+
+                model_class = "unknown"
+
+            print(
+                f"Detection {i}: "
+                f"class_id={class_id}, "
+                f"class={model_class}, "
+                f"confidence={confidence:.6f}"
+            )
+
+        print("----------------------------------------")
 
         # ====================================================
         # KEYPOINTS
@@ -391,7 +560,7 @@ def analyze_palm_image(image_path):
         for i in range(len(boxes)):
 
             # ------------------------------------------------
-            # CLASS
+            # CLASS ID
             # ------------------------------------------------
 
             try:
@@ -400,14 +569,13 @@ def analyze_palm_image(image_path):
                     boxes.cls[i].item()
                 )
 
-            except Exception:
+            except Exception as e:
+
+                print(
+                    f"⚠️ Could not read class ID: {e}"
+                )
 
                 continue
-
-            if class_id not in class_names:
-                continue
-
-            line_name = class_names[class_id]
 
             # ------------------------------------------------
             # CONFIDENCE
@@ -419,12 +587,51 @@ def analyze_palm_image(image_path):
                     boxes.conf[i].item()
                 )
 
-            except Exception:
+            except Exception as e:
+
+                print(
+                    f"⚠️ Could not read confidence: {e}"
+                )
 
                 continue
 
             # ------------------------------------------------
-            # KEEP BEST DETECTION
+            # MAP CLASS
+            # ------------------------------------------------
+
+            line_name = map_class_to_line(
+                class_id,
+                model.names
+            )
+
+            if line_name is None:
+
+                print(
+                    f"⚠️ Unknown YOLO class: "
+                    f"{class_id}"
+                )
+
+                continue
+
+            print()
+            print(
+                f"🔥 PROCESSING DETECTION {i}"
+            )
+
+            print(
+                f"Class ID: {class_id}"
+            )
+
+            print(
+                f"Mapped line: {line_name}"
+            )
+
+            print(
+                f"Confidence: {confidence:.6f}"
+            )
+
+            # ------------------------------------------------
+            # Keep best detection
             # ------------------------------------------------
 
             if (
@@ -432,6 +639,7 @@ def analyze_palm_image(image_path):
                 and confidence
                 <= palm_lines[line_name]["confidence"]
             ):
+
                 continue
 
             palm_lines[line_name][
@@ -454,6 +662,12 @@ def analyze_palm_image(image_path):
             # =================================================
 
             if keypoints is None:
+
+                print(
+                    f"⚠️ No keypoints available "
+                    f"for {line_name}"
+                )
+
                 continue
 
             try:
@@ -468,8 +682,8 @@ def analyze_palm_image(image_path):
             except Exception as e:
 
                 print(
-                    f"⚠️ Keypoint extraction failed "
-                    f"for {line_name}: {e}"
+                    f"⚠️ Keypoint extraction "
+                    f"failed for {line_name}: {e}"
                 )
 
                 continue
@@ -478,6 +692,12 @@ def analyze_palm_image(image_path):
                 points is None
                 or len(points) == 0
             ):
+
+                print(
+                    f"⚠️ No keypoints found "
+                    f"for {line_name}"
+                )
+
                 continue
 
             # =================================================
@@ -497,14 +717,22 @@ def analyze_palm_image(image_path):
 
                     continue
 
-                # Ignore invalid coordinates.
-                if x > 0 and y > 0:
+                if (
+                    x > 0
+                    and y > 0
+                ):
 
                     valid_points.append(
                         (x, y)
                     )
 
             if len(valid_points) < 2:
+
+                print(
+                    f"⚠️ Less than 2 valid "
+                    f"keypoints for {line_name}"
+                )
+
                 continue
 
             palm_lines[line_name][
@@ -512,7 +740,7 @@ def analyze_palm_image(image_path):
             ] = len(valid_points)
 
             # =================================================
-            # START / END POINT
+            # START / END
             # =================================================
 
             start_x, start_y = valid_points[0]
@@ -521,27 +749,15 @@ def analyze_palm_image(image_path):
             palm_lines[line_name][
                 "start_point"
             ] = {
-                "x": round(
-                    start_x,
-                    2
-                ),
-                "y": round(
-                    start_y,
-                    2
-                )
+                "x": round(start_x, 2),
+                "y": round(start_y, 2),
             }
 
             palm_lines[line_name][
                 "end_point"
             ] = {
-                "x": round(
-                    end_x,
-                    2
-                ),
-                "y": round(
-                    end_y,
-                    2
-                )
+                "x": round(end_x, 2),
+                "y": round(end_y, 2),
             }
 
             # =================================================
@@ -573,7 +789,7 @@ def analyze_palm_image(image_path):
             )
 
             # =================================================
-            # OVERALL ANGLE
+            # ANGLE
             # =================================================
 
             dx = end_x - start_x
@@ -597,7 +813,7 @@ def analyze_palm_image(image_path):
             )
 
             # =================================================
-            # AVERAGE CURVATURE
+            # CURVATURE
             # =================================================
 
             angles = []
@@ -630,10 +846,7 @@ def analyze_palm_image(image_path):
                 )
 
                 if difference > 180:
-
-                    difference = (
-                        360 - difference
-                    )
+                    difference = 360 - difference
 
                 angles.append(
                     difference
@@ -653,9 +866,13 @@ def analyze_palm_image(image_path):
         # ====================================================
 
         detected_confidences = [
+
             data["confidence"]
+
             for data in palm_lines.values()
+
             if data["detected"]
+
         ]
 
         if detected_confidences:
@@ -671,7 +888,7 @@ def analyze_palm_image(image_path):
             overall_confidence = 0.0
 
         # ====================================================
-        # PRINT RESULTS
+        # FINAL YOLO RESULT
         # ====================================================
 
         print()
@@ -682,9 +899,15 @@ def analyze_palm_image(image_path):
         for name, data in palm_lines.items():
 
             print(
-                f"{name.upper():<6} -> "
-                f"{data['confidence_percent']:.1f}%"
+                f"{name.upper():<8} -> "
+                f"Detected: {data['detected']} | "
+                f"Confidence: "
+                f"{data['confidence_percent']:.1f}% | "
+                f"Keypoints: "
+                f"{data['keypoint_count']}"
             )
+
+        print()
 
         print(
             f"Overall confidence -> "
@@ -694,37 +917,26 @@ def analyze_palm_image(image_path):
         print("========================================")
         print()
 
-        # ====================================================
-        # RETURN
-        # ====================================================
-
         return {
             "palm_lines": palm_lines,
             "overall_confidence": round(
                 overall_confidence,
                 4
-            )
+            ),
         }
 
     except Exception as e:
 
-        # ----------------------------------------------------
-        # IMPORTANT ERROR LOGGING
-        # ----------------------------------------------------
-
         print()
         print("❌ PALM YOLO INFERENCE FAILED")
         print("----------------------------------------")
-        print(f"{type(e).__name__}: {e}")
+        print(f"ERROR TYPE: {type(e).__name__}")
+        print(f"ERROR MESSAGE: {e}")
         print("----------------------------------------")
 
         raise
 
     finally:
-
-        # ====================================================
-        # MEMORY CLEANUP
-        # ====================================================
 
         try:
             del results
@@ -736,19 +948,10 @@ def analyze_palm_image(image_path):
         except Exception:
             pass
 
-        # ----------------------------------------------------
-        # Force Python garbage collection.
-        # ----------------------------------------------------
-
         try:
             gc.collect()
         except Exception:
             pass
-
-        # ----------------------------------------------------
-        # CUDA cleanup only if CUDA exists.
-        # Render deployment is CPU-only.
-        # ----------------------------------------------------
 
         try:
 
@@ -767,17 +970,15 @@ def generate_reading(
     profile,
     palm_analysis
 ):
-    """
-    Send extracted palm features to the AI engine.
-    """
 
     palm_features = {
-        "line_detection": palm_analysis[
-            "palm_lines"
-        ],
-        "analysis_confidence": palm_analysis[
-            "overall_confidence"
-        ]
+
+        "line_detection":
+            palm_analysis["palm_lines"],
+
+        "analysis_confidence":
+            palm_analysis["overall_confidence"],
+
     }
 
     print()
@@ -804,14 +1005,13 @@ def analyze_palm(
     image_path,
     profile=None
 ):
+
     """
     Complete palm analysis pipeline:
 
         Image
           ↓
         YOLO Palm Line Detection
-          ↓
-        Feature Extraction
           ↓
         OpenRouter AI Reading
           ↓
@@ -822,10 +1022,12 @@ def analyze_palm(
         profile = {}
 
     print()
-    print("========== PALM ANALYSIS STARTED ==========")
+    print(
+        "========== PALM ANALYSIS STARTED =========="
+    )
 
     # ========================================================
-    # STEP 1: COMPUTER VISION
+    # STEP 1 : YOLO
     # ========================================================
 
     palm_analysis = analyze_palm_image(
@@ -833,7 +1035,7 @@ def analyze_palm(
     )
 
     # ========================================================
-    # STEP 2: AI INTERPRETATION
+    # STEP 2 : AI
     # ========================================================
 
     try:
@@ -848,7 +1050,9 @@ def analyze_palm(
         print()
         print("❌ AI PALM READING FAILED")
         print("----------------------------------------")
-        print(f"{type(e).__name__}: {e}")
+        print(
+            f"{type(e).__name__}: {e}"
+        )
         print("----------------------------------------")
 
         reading = {
@@ -859,10 +1063,18 @@ def analyze_palm(
     # FINAL RESPONSE
     # ========================================================
 
-
     return {
-        "success": True,
-        "image_path": image_path,
-        "palm_analysis": palm_analysis,
-        "reading": reading
+
+        "success":
+            True,
+
+        "image_path":
+            image_path,
+
+        "palm_analysis":
+            palm_analysis,
+
+        "reading":
+            reading,
     }
+
