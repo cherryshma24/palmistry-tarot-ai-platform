@@ -1,3 +1,8 @@
+import os
+import tempfile
+
+from app.services.palm_service import analyze_palm_image
+
 from app.palm.utils import preprocess_image
 from app.palm.detector import detect_hand_landmarks
 from app.palm.features import extract_palm_features
@@ -16,61 +21,177 @@ class PalmAnalysisService:
         # STEP 1 : PREPROCESS IMAGE
         # =====================================================
 
+        print("========== STEP 1 : PREPROCESS IMAGE ==========")
+
         _, rgb_image = preprocess_image(image_bytes)
+
+        print("✅ Image preprocessing completed.")
 
         # =====================================================
         # STEP 2 : ENHANCE IMAGE
         # =====================================================
 
-        enhanced_image = enhance_palm_image(rgb_image)
+        print("\n========== STEP 2 : ENHANCE IMAGE ==========")
+
+        try:
+            enhanced_image = enhance_palm_image(rgb_image)
+
+            if enhanced_image is not None:
+                print("✅ Palm image enhancement completed.")
+            else:
+                print("⚠️ Image enhancement returned None.")
+
+        except Exception as e:
+            print("⚠️ Image enhancement failed:")
+            print(f"{type(e).__name__}: {e}")
+
+            # Enhancement is not required for YOLO,
+            # so continue processing.
+            enhanced_image = rgb_image
 
         # =====================================================
         # STEP 3 : HAND LANDMARK DETECTION
         # =====================================================
 
-        landmarks = detect_hand_landmarks(rgb_image)
+        print("\n========== STEP 3 : HAND LANDMARK DETECTION ==========")
+
+        try:
+
+            landmarks = detect_hand_landmarks(rgb_image)
+
+            if landmarks is not None:
+                print("✅ MediaPipe hand landmarks detected.")
+
+                try:
+                    print(
+                        f"Total landmarks: {len(landmarks)}"
+                    )
+                except Exception:
+                    pass
+
+            else:
+                print("⚠️ MediaPipe hand not detected.")
+
+        except Exception as e:
+
+            print("❌ MediaPipe detection failed.")
+
+            print(
+                f"{type(e).__name__}: {e}"
+            )
+
+            landmarks = None
 
         # =====================================================
-        # STEP 4 : YOLO BYPASS
+        # STEP 4 : REAL YOLO PALM LINE DETECTION
         # =====================================================
-
-        # YOLO is temporarily disabled for Render testing.
-        # This allows us to check whether the remaining
-        # palm-analysis pipeline works correctly.
-
-        yolo_analysis = {
-            "palm_lines": {
-                "fate": {
-                    "detected": False,
-                    "confidence": 0.0,
-                    "confidence_percent": 0.0
-                },
-                "head": {
-                    "detected": False,
-                    "confidence": 0.0,
-                    "confidence_percent": 0.0
-                },
-                "heart": {
-                    "detected": False,
-                    "confidence": 0.0,
-                    "confidence_percent": 0.0
-                },
-                "life": {
-                    "detected": False,
-                    "confidence": 0.0,
-                    "confidence_percent": 0.0
-                }
-            },
-            "overall_confidence": 0.0
-        }
 
         print(
-            "YOLO temporarily bypassed for Render testing"
+            "\n========== STEP 4 : REAL YOLO PALM LINE DETECTION ==========\n"
         )
 
+        temp_image_path = None
+
+        try:
+
+            # -------------------------------------------------
+            # Create temporary image
+            # -------------------------------------------------
+
+            with tempfile.NamedTemporaryFile(
+                suffix=".jpg",
+                delete=False
+            ) as temp_file:
+
+                temp_file.write(image_bytes)
+
+                temp_image_path = temp_file.name
+
+            print(
+                f"Temporary palm image: {temp_image_path}"
+            )
+
+            print("\n🔥 Calling REAL YOLO palm detector...")
+
+            # -------------------------------------------------
+            # Run existing YOLO service
+            # -------------------------------------------------
+
+            yolo_analysis = analyze_palm_image(
+                temp_image_path
+            )
+
+            # -------------------------------------------------
+            # Print raw YOLO response
+            # -------------------------------------------------
+
+            print("\n🔥 RAW YOLO RESULT:")
+            print("----------------------------------------")
+            print(yolo_analysis)
+            print("----------------------------------------")
+
+            print(
+                "\n✅ Real YOLO analysis completed."
+            )
+
+        except Exception as e:
+
+            # -------------------------------------------------
+            # DO NOT silently convert error into 0%
+            # -------------------------------------------------
+
+            print("\n❌ YOLO ANALYSIS FAILED")
+
+            print("----------------------------------------")
+
+            print(
+                f"ERROR TYPE: {type(e).__name__}"
+            )
+
+            print(
+                f"ERROR MESSAGE: {e}"
+            )
+
+            print("----------------------------------------")
+
+            # Re-raise the error so we can see
+            # the real problem during debugging.
+            raise
+
+        finally:
+
+            # -------------------------------------------------
+            # Delete temporary image
+            # -------------------------------------------------
+
+            if (
+                temp_image_path is not None
+                and os.path.exists(temp_image_path)
+            ):
+
+                try:
+
+                    os.remove(
+                        temp_image_path
+                    )
+
+                    print(
+                        "✅ Temporary image deleted."
+                    )
+
+                except Exception as e:
+
+                    print(
+                        f"⚠️ Could not delete temporary image: {e}"
+                    )
+
         # =====================================================
-        # YOLO LINE DATA
+        # STEP 5 : YOLO LINE DATA
         # =====================================================
+
+        print(
+            "\n========== STEP 5 : YOLO PALM LINE RESULTS ==========\n"
+        )
 
         palm_lines = yolo_analysis.get(
             "palm_lines",
@@ -82,119 +203,185 @@ class PalmAnalysisService:
             0.0
         )
 
-        print(
-            "\n========== YOLO PALM LINE RESULTS ==========\n"
-        )
+        # -----------------------------------------------------
+        # Print every detected line
+        # -----------------------------------------------------
 
         for name, data in palm_lines.items():
 
-            print(
-                f"{name.upper():<6} -> "
-                f"{data.get('confidence_percent', 0.0):.1f}%"
+            detected = data.get(
+                "detected",
+                False
             )
 
+            confidence = data.get(
+                "confidence",
+                0.0
+            )
+
+            confidence_percent = data.get(
+                "confidence_percent",
+                confidence * 100
+            )
+
+            print(
+                f"{name.upper():<8} -> "
+                f"Detected: {detected} | "
+                f"Confidence: {confidence:.4f} | "
+                f"Percentage: {confidence_percent:.1f}%"
+            )
+
+        print(
+            "\nOverall YOLO confidence -> "
+            f"{overall_confidence * 100:.1f}%"
+        )
+
         # =====================================================
-        # STEP 5 : HAND FEATURES
+        # STEP 6 : HAND FEATURES
         # =====================================================
+
+        print(
+            "\n========== STEP 6 : PALM FEATURE EXTRACTION ==========\n"
+        )
 
         if landmarks is not None:
 
             print(
-                "Using MediaPipe Hand Detection "
-                "+ Palm Feature Extraction"
+                "Using MediaPipe + OpenCV + YOLO"
             )
 
+            # -------------------------------------------------
             # Extract palm features
+            # -------------------------------------------------
 
-            features = extract_palm_features(
-                landmarks
-            )
+            try:
 
-            # Classify palm shape
+                features = extract_palm_features(
+                    landmarks
+                )
 
-            palm_shape = classify_palm_shape(
-                landmarks
-            )
+                print(
+                    "✅ Palm features extracted."
+                )
+
+            except Exception as e:
+
+                print(
+                    "⚠️ Palm feature extraction failed:"
+                )
+
+                print(
+                    f"{type(e).__name__}: {e}"
+                )
+
+                features = {}
+
+            # -------------------------------------------------
+            # Palm shape
+            # -------------------------------------------------
+
+            try:
+
+                palm_shape = classify_palm_shape(
+                    landmarks
+                )
+
+                print(
+                    f"✅ Palm shape: {palm_shape}"
+                )
+
+            except Exception as e:
+
+                print(
+                    "⚠️ Palm shape classification failed:"
+                )
+
+                print(
+                    f"{type(e).__name__}: {e}"
+                )
+
+                palm_shape = "Unknown"
 
             features["palm_shape"] = palm_shape
-
-            # Palm-line information
-
-            features["line_detection"] = palm_lines
-
-            features["yolo_line_confidence"] = (
-                overall_confidence
-            )
-
-            features["analysis_confidence"] = (
-                overall_confidence
-            )
-
-            # System information
-
-            features["analysis_version"] = "3.0"
-
-            features["cv_engine"] = (
-                "MediaPipe + OpenCV"
-            )
-
-            features["analysis_type"] = (
-                "Palmistry Intelligence"
-            )
-
-            features["ai_provider"] = (
-                "OpenRouter"
-            )
-
-            # Detected lines
-
-            features["detected_lines"] = [
-                name.title()
-                for name, data in palm_lines.items()
-                if data.get("detected")
-            ]
 
         else:
 
             print(
-                "MediaPipe hand not detected."
+                "⚠️ MediaPipe hand not detected."
             )
 
-            features = {
-
-                "palm_shape": "Unknown",
-
-                "line_detection": palm_lines,
-
-                "yolo_line_confidence":
-                    overall_confidence,
-
-                "analysis_confidence":
-                    overall_confidence,
-
-                "analysis_version":
-                    "3.0",
-
-                "cv_engine":
-                    "OpenCV",
-
-                "analysis_type":
-                    "Palmistry Intelligence",
-
-                "ai_provider":
-                    "OpenRouter",
-
-                "detected_lines": [
-                    name.title()
-                    for name, data in palm_lines.items()
-                    if data.get("detected")
-                ]
-            }
+            features = {}
 
             palm_shape = "Unknown"
 
         # =====================================================
-        # STEP 6 : PROFILE
+        # STEP 7 : ADD YOLO INFORMATION
+        # =====================================================
+
+        print(
+            "\n========== STEP 7 : ADDING YOLO FEATURES ==========\n"
+        )
+
+        # -----------------------------------------------------
+        # Complete palm-line information
+        # -----------------------------------------------------
+
+        features["line_detection"] = palm_lines
+
+        # -----------------------------------------------------
+        # Overall YOLO confidence
+        # -----------------------------------------------------
+
+        features["yolo_line_confidence"] = (
+            overall_confidence
+        )
+
+        features["analysis_confidence"] = (
+            overall_confidence
+        )
+
+        # -----------------------------------------------------
+        # System information
+        # -----------------------------------------------------
+
+        features["analysis_version"] = "3.0"
+
+        features["cv_engine"] = (
+            "MediaPipe + OpenCV + YOLO"
+        )
+
+        features["analysis_type"] = (
+            "Palmistry Intelligence"
+        )
+
+        features["ai_provider"] = (
+            "OpenRouter"
+        )
+
+        # -----------------------------------------------------
+        # Detected line names
+        # -----------------------------------------------------
+
+        features["detected_lines"] = [
+
+            name.title()
+
+            for name, data in palm_lines.items()
+
+            if data.get("detected", False)
+
+        ]
+
+        print(
+            "\nDetected lines:"
+        )
+
+        print(
+            features["detected_lines"]
+        )
+
+        # =====================================================
+        # STEP 8 : PROFILE
         # =====================================================
 
         profile = {
@@ -212,17 +399,15 @@ class PalmAnalysisService:
         }
 
         # =====================================================
-        # STEP 7 : AI BYPASS
+        # STEP 9 : AI BYPASS
         # =====================================================
 
         print(
-            "\n========== FEATURES SENT TO AI ==========\n"
+            "\n========== STEP 9 : AI READING ==========\n"
         )
 
-        print(features)
-
         # -----------------------------------------------------
-        # OpenRouter temporarily bypassed
+        # AI temporarily bypassed
         # -----------------------------------------------------
 
         reading = {
@@ -246,21 +431,26 @@ class PalmAnalysisService:
                         "analysis_confidence",
                         0.0
                     )
+
             },
 
             "confidence":
-                0
+                overall_confidence
 
         }
 
         print(
             "OpenRouter AI temporarily bypassed "
-            "for Render testing"
+            "for Render testing."
         )
 
         # =====================================================
-        # STEP 8 : PERSONALITY AI BYPASS
+        # STEP 10 : PERSONALITY AI BYPASS
         # =====================================================
+
+        print(
+            "\n========== STEP 10 : PERSONALITY ==========\n"
+        )
 
         personality = {
 
@@ -275,20 +465,16 @@ class PalmAnalysisService:
 
         print(
             "Personality AI temporarily bypassed "
-            "for Render testing"
-        )
-
-        print(
-            "\n========== AI READING GENERATED ==========\n"
-        )
-
-        print(
-            "\n========== PERSONALITY PROFILE GENERATED ==========\n"
+            "for Render testing."
         )
 
         # =====================================================
-        # STEP 9 : FINAL RESPONSE
+        # STEP 11 : FINAL RESPONSE
         # =====================================================
+
+        print(
+            "\n========== PALM ANALYSIS COMPLETED ==========\n"
+        )
 
         return {
 
@@ -304,7 +490,7 @@ class PalmAnalysisService:
                     "Palmistry & Tarot Intelligence Platform",
 
                 "cv_engine":
-                    "MediaPipe + OpenCV",
+                    "MediaPipe + OpenCV + YOLO",
 
                 "ai_engine":
                     "OpenRouter",
@@ -331,6 +517,8 @@ class PalmAnalysisService:
             "palm_shape":
                 palm_shape,
 
+            # IMPORTANT:
+            # Report frontend should read this field.
             "line_detection":
                 palm_lines,
 
